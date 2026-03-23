@@ -14,6 +14,8 @@ A NestJS module for Socket.IO integration with room management and event handlin
 <!-- DEPBADGE:START -->
 <div align="center">
 
+
+
 # StatusBadges
 
 ![github](https://img.shields.io/github/release/ehildt/nestjs-socket.io?labelColor=333&style=for-the-badge&cacheSeconds=3600&color=b16425&logo=github&logoColor=b16425&logoWidth=40&branch=main)
@@ -25,6 +27,8 @@ A NestJS module for Socket.IO integration with room management and event handlin
 <br>
 
 <div align="center">
+
+
 
 # DevDependencies
 
@@ -56,6 +60,8 @@ A NestJS module for Socket.IO integration with room management and event handlin
 <br>
 
 <div align="center">
+
+
 
 # PeerDependencies
 
