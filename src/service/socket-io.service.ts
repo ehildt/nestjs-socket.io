@@ -1,8 +1,8 @@
 import { Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { DefaultEventsMap, Server, Socket } from "socket.io";
 
-import { SOCKET_IO_SERVER } from "./socket-io.constants.ts";
-import { SocketIOListener, SocketIORecord } from "./socket-io.model.ts";
+import { SOCKET_IO_SERVER } from "../constants/socket-io.constants.ts";
+import { SocketIOListener, SocketIORecord } from "../models/socket-io.model.ts";
 
 @Injectable()
 export class SocketIOService implements OnModuleInit {

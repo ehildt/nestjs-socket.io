@@ -5,7 +5,27 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": null
+    ".": null,
+    "./constants": {
+      "types": "./dist/constants/index.d.ts",
+      "import": "./dist/constants/index.mjs"
+    },
+    "./models": {
+      "types": "./dist/models/index.d.ts",
+      "import": "./dist/models/index.mjs"
+    },
+    "./module": {
+      "types": "./dist/module/index.d.ts",
+      "import": "./dist/module/index.mjs"
+    },
+    "./schema": {
+      "types": "./dist/schema/index.d.ts",
+      "import": "./dist/schema/index.mjs"
+    },
+    "./service": {
+      "types": "./dist/service/index.d.ts",
+      "import": "./dist/service/index.mjs"
+    }
   },
   "main": "dist/index.mjs",
   "files": [

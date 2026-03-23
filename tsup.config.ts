@@ -1,7 +1,13 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts"],
+  entry: [
+    "src/constants/index.ts",
+    "src/models/index.ts",
+    "src/module/index.ts",
+    "src/schema/index.ts",
+    "src/service/index.ts",
+  ],
   format: ["esm"],
   target: "node24",
   platform: "node",

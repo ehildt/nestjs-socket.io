@@ -1,8 +1,10 @@
 import { Logger } from "@nestjs/common";
 
-import { SOCKET_IO_SERVER, SocketIOService } from "./index.ts";
-import type { SocketIOConfig } from "./socket-io.model.ts";
-import { SocketIOModule } from "./socket-io.module.ts";
+import { SOCKET_IO_SERVER } from "../constants/index.ts";
+import type { SocketIOConfig } from "../models/socket-io.model.ts";
+import { SocketIOService } from "../service/index.ts";
+
+import { SocketIOModule } from "./index.ts";
 
 describe("SocketIOModule", () => {
   describe("registerAsync", () => {

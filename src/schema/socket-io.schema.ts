@@ -1,6 +1,6 @@
 import Joi from "joi";
 
-import { SocketIOConfig } from "./socket-io.model.ts";
+import { SocketIOConfig } from "../models/socket-io.model.ts";
 
 export const SocketIOConfigSchema = Joi.object<SocketIOConfig>({
   event: Joi.string().optional(),

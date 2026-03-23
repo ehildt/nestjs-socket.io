@@ -1,9 +1,9 @@
 import { DynamicModule, Logger, Module } from "@nestjs/common";
 import { Server } from "socket.io";
 
-import { SOCKET_IO_SERVER } from "./socket-io.constants.ts";
-import { SocketIOModuleProps } from "./socket-io.model.ts";
-import { SocketIOService } from "./socket-io.service.ts";
+import { SOCKET_IO_SERVER } from "../constants/socket-io.constants.ts";
+import { SocketIOModuleProps } from "../models/socket-io.model.ts";
+import { SocketIOService } from "../service/socket-io.service.ts";
 
 @Module({})
 export class SocketIOModule {
