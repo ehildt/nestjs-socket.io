@@ -20,7 +20,9 @@ export class SocketIOModule {
           inject: options.inject,
           useFactory: async (...deps) => {
             const { port, opts } = await options.useFactory(...deps);
-            return new Server(port, opts);
+            const server = new Server(opts);
+            server.listen(port);
+            return server;
           },
         },
       ],
