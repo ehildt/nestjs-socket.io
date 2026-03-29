@@ -1,5 +1,11 @@
 # @ehildt/nestjs-socket.io
 
+## 1.2.1
+
+### Patch Changes
+
+- 044aced: Improve package.json description
+
 ## 1.2.0
 
 ### Minor Changes
