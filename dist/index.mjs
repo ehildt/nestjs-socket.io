@@ -1,4 +1,4 @@
-import { Injectable, Module, Logger } from '@nestjs/common';
+import { Injectable, Inject, Module, Logger } from '@nestjs/common';
 import Joi from 'joi';
 
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -9,8 +9,10 @@ var __decorateClass = (decorators, target, key, kind) => {
       result = (decorator(result)) || result;
   return result;
 };
+var __decorateParam = (index, decorator) => (target, key) => decorator(target, key, index);
+var SOCKET_IO_LOGGER = "SOCKET_IO_LOGGER";
 var SocketIOService = class {
-  constructor(logger) {
+  constructor(logger = new Logger(SocketIOService.name)) {
     this.logger = logger;
   }
   _server = null;
@@ -26,14 +28,26 @@ var SocketIOService = class {
   get server() {
     return this._server;
   }
+  /**
+   * Emits an event to all connected clients in the main namespace.
+   * @see https://socket.io/docs/v4/server-api/#serveremiteventname-args
+   */
   emit(event, message) {
     this._server?.emit(event, message);
     return this;
   }
+  /**
+   * Emits an event to all connected clients in the specified room.
+   * @see https://socket.io/docs/v4/server-api/#serveremit-eventname-args
+   */
   emitTo(event, room, message) {
     this._server?.to(room).emit(event, message);
     return this;
   }
+  /**
+   * Makes the socket join a room.
+   * @see https://socket.io/docs/v4/server-socket-instance/#socketjoinroom
+   */
   async joinRoom({ socket, data, ack }) {
     this.logger.log("attempting to join room", data);
     try {
@@ -46,6 +60,10 @@ var SocketIOService = class {
       this.logger.log(`client with id ${socket.id} error joining room ${data}`, "Socket.IO");
     }
   }
+  /**
+   * Makes the socket leave a room.
+   * @see https://socket.io/docs/v4/server-socket-instance/#socketleaveroom
+   */
   async leaveRoom({ socket, data, ack }) {
     this.logger.log("attempting to leave room", data);
     try {
@@ -58,6 +76,10 @@ var SocketIOService = class {
       this.logger.log(`client with id ${socket.id} error leaving room ${data}`, "Socket.IO");
     }
   }
+  /**
+   * Registers an event handler for incoming connections or subscribes to events.
+   * @see https://socket.io/docs/v4/server-api/#serveroneventname-listener
+   */
   on(event, cb) {
     if (typeof event === "string" && cb) {
       this.logger.log(`Subscribed to event: "${event}"`, "Socket.IO");
@@ -78,9 +100,110 @@ var SocketIOService = class {
     }
     return this;
   }
+  /**
+   * Sets a modifier for a subsequent event emission that the event will only be\
+   * broadcast to clients that have joined the given room.
+   * @see https://socket.io/docs/v4/server-api/#servertoroom
+   */
+  to(room) {
+    this._server?.to(room);
+    return this;
+  }
+  /**
+   * Alias for to(). Sets a modifier for a subsequent event emission.
+   * @see https://socket.io/docs/v4/server-api/#serverinroom
+   */
+  in(room) {
+    this._server?.in(room);
+    return this;
+  }
+  /**
+   * Sets a modifier for a subsequent event emission that the event will only be\
+   * broadcast to clients that have not joined the given rooms.
+   * @see https://socket.io/docs/v4/server-api/#serverexceptrooms
+   */
+  except(room) {
+    this._server?.except(room);
+    return this;
+  }
+  /**
+   * Sets a modifier for a subsequent event emission that the callback will be called\
+   * with an error when the given number of milliseconds have elapsed without an\
+   * acknowledgement from all targeted clients.
+   * @see https://socket.io/docs/v4/server-api/#servertimeoutvalue
+   */
+  timeout(ms) {
+    this._server?.timeout(ms);
+    return this;
+  }
+  /**
+   * Returns the matching Socket instances.
+   * @see https://socket.io/docs/v4/server-api/#serverfetchsockets
+   */
+  fetchSockets(cb) {
+    void this._server?.fetchSockets().then(cb);
+    return this;
+  }
+  /**
+   * Makes all Socket instances join the specified rooms.
+   * @see https://socket.io/docs/v4/server-api/#serversocketsjoinrooms
+   */
+  socketsJoin(rooms, cb) {
+    this._server?.socketsJoin(rooms);
+    cb?.();
+    return this;
+  }
+  /**
+   * Makes all Socket instances leave the specified rooms.
+   * @see https://socket.io/docs/v4/server-api/#serversocketsleaverooms
+   */
+  socketsLeave(rooms, cb) {
+    this._server?.socketsLeave(rooms);
+    cb?.();
+    return this;
+  }
+  /**
+   * Makes the matching Socket instances disconnect.
+   * @see https://socket.io/docs/v4/server-api/#serverdisconnectsocketsclose
+   */
+  disconnectSockets(close, cb) {
+    void this._server?.disconnectSockets(close);
+    cb?.();
+    return this;
+  }
+  /**
+   * Closes the Socket.IO server and disconnects all clients.
+   * @see https://socket.io/docs/v4/server-api/#serverclosecallback
+   */
+  close(cb) {
+    if (cb) {
+      this._server?.close(cb);
+    } else {
+      this._server?.close();
+    }
+    return this;
+  }
+  /**
+   * Initializes and retrieves the given Namespace by its pathname identifier.
+   * @see https://socket.io/docs/v4/server-api/#serverofnsp
+   */
+  of(nsp, cb) {
+    cb(this._server?.of(nsp));
+    return this;
+  }
+  /**
+   * Registers a middleware for the main namespace.
+   * @see https://socket.io/docs/v4/server-api/#serverusefn
+   */
+  use(fn, cb) {
+    this._server?.use(fn);
+    cb?.(this._server);
+    return this;
+  }
 };
 SocketIOService = __decorateClass([
-  Injectable()
+  Injectable(),
+  __decorateParam(0, Inject(SOCKET_IO_LOGGER))
 ], SocketIOService);
 
 // src/module/socket-io.module.ts
@@ -90,7 +213,7 @@ var SocketIOModule = class {
       module: SocketIOModule,
       global: options.global,
       exports: [SocketIOService],
-      providers: [Logger, SocketIOService]
+      providers: [{ provide: SOCKET_IO_LOGGER, useValue: new Logger(SocketIOService.name) }, SocketIOService]
     };
   }
 };
@@ -98,7 +221,6 @@ SocketIOModule = __decorateClass([
   Module({})
 ], SocketIOModule);
 var SocketIOConfigSchema = Joi.object({
-  event: Joi.string().optional(),
   port: Joi.number().required(),
   opts: Joi.object({
     cleanupEmptyChildNamespaces: Joi.boolean().required(),
@@ -113,7 +235,7 @@ var SocketIOConfigSchema = Joi.object({
       credentials: Joi.boolean().required(),
       methods: Joi.array().items(Joi.string().valid("GET", "POST")).required()
     }).required()
-  }).required()
+  }).optional()
 });
 
-export { SocketIOConfigSchema, SocketIOModule, SocketIOService };
+export { SOCKET_IO_LOGGER, SocketIOConfigSchema, SocketIOModule, SocketIOService };
