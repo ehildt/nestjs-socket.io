@@ -63,51 +63,73 @@ devDependencies:
   items:
     - name: "@changesets/cli"
       namedLogo: npm
+      link: https://github.com/changesets/changesets
     - name: "@eslint/js"
+      namedLogo: npm
+      link: https://github.com/eslint/eslint
     - name: "@nestjs/testing"
       namedLogo: npm
       link: https://github.com/nestjs/nest
-      namedLogo: eslint
     - name: "@types/eslint"
       namedLogo: eslint
+      link: https://github.com/DefinitelyTyped/DefinitelyTyped
     - name: "@types/node"
       namedLogo: node
+      link: https://github.com/DefinitelyTyped/DefinitelyTyped
     - name: "@vitest/coverage-v8"
       namedLogo: vitest
+      link: https://github.com/vitest-dev/vitest
     - name: depcheck
       namedLogo: npm
+      link: https://github.com/depcheck/depcheck
     - name: dependency-cruiser
       namedLogo: npm
+      link: https://github.com/sverweij/dependency-cruiser
     - name: eslint
       namedLogo: eslint
+      link: https://github.com/eslint/eslint
     - name: eslint-config-prettier
       namedLogo: prettier
+      link: https://github.com/prettier/eslint-config-prettier
     - name: eslint-plugin-prettier
       namedLogo: prettier
+      link: https://github.com/prettier/eslint-plugin-prettier
     - name: eslint-plugin-simple-import-sort
       namedLogo: npm
+      link: https://github.com/lydell/eslint-plugin-simple-import-sort
     - name: eslint-plugin-sonarjs
       namedLogo: sonar
+      link: https://github.com/SonarSource/eslint-plugin-sonarjs
     - name: globals
       namedLogo: npm
+      link: https://github.com/sindresorhus/globals
     - name: husky
       namedLogo: husky
+      link: https://github.com/typicode/husky
     - name: jiti
       namedLogo: npm
+      link: https://github.com/unjs/jiti
     - name: lint-staged
       namedLogo: npm
+      link: https://github.com/lint-staged/lint-staged
     - name: npm-check-updates
       namedLogo: npm
+      link: https://github.com/raineorshine/npm-check-updates
     - name: rimraf
       namedLogo: npm
+      link: https://github.com/isaacs/rimraf
     - name: ts-unused-exports
       namedLogo: npm
+      link: https://github.com/pinterest/ts-unused-exports
     - name: tsup
       namedLogo: npm
+      link: https://github.com/egoist/tsup
     - name: typescript-eslint
       namedLogo: eslint
+      link: https://github.com/typescript-eslint/typescript-eslint
     - name: vitest
       namedLogo: vitest
+      link: https://github.com/vitest-dev/vitest
 
 statusBadges:
   layout:
