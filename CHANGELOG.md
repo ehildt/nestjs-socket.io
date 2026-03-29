@@ -1,5 +1,11 @@
 # @ehildt/nestjs-socket.io
 
+## 1.2.2
+
+### Patch Changes
+
+- f800953: Add repository links to dependency badges
+
 ## 1.2.1
 
 ### Patch Changes
