@@ -1,9 +1,7 @@
 import { DynamicModule, Logger, Module } from "@nestjs/common";
-import { Server } from "socket.io";
 
-import { SOCKET_IO_SERVER } from "../constants/socket-io.constants.ts";
 import { SocketIOModuleProps } from "../models/socket-io.model.ts";
-import { SocketIOService } from "../service/socket-io.service.ts";
+import { SOCKET_IO_LOGGER, SocketIOService } from "../service/socket-io.service.ts";
 
 @Module({})
 export class SocketIOModule {
@@ -11,19 +9,8 @@ export class SocketIOModule {
     return {
       module: SocketIOModule,
       global: options.global,
-      exports: [SOCKET_IO_SERVER, SocketIOService],
-      providers: [
-        Logger,
-        SocketIOService,
-        {
-          provide: SOCKET_IO_SERVER,
-          inject: options.inject,
-          useFactory: async (...deps) => {
-            const { opts } = await options.useFactory(...deps);
-            return new Server(opts);
-          },
-        },
-      ],
+      exports: [SocketIOService],
+      providers: [{ provide: SOCKET_IO_LOGGER, useValue: new Logger(SocketIOService.name) }, SocketIOService],
     };
   }
 }

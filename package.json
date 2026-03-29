@@ -47,6 +47,7 @@
   "devDependencies": {
     "@changesets/cli": "^2.30.0",
     "@eslint/js": "^10.0.1",
+    "@nestjs/testing": "^11.1.17",
     "@types/eslint": "^9.6.1",
     "@types/node": "^25.5.0",
     "@vitest/coverage-v8": "4.1.2",
@@ -70,7 +71,7 @@
   },
   "peerDependencies": {
     "@nestjs/common": "^11.1.17",
-    "socket.io": "^4.8.1",
-    "joi": "^18.0.2"
+    "joi": "^18.0.2",
+    "socket.io": "^4.8.1"
   }
 }

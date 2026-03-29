@@ -14,14 +14,10 @@ Creates a dynamic module that registers the Socket.IO server.
 
 ```typescript
 type SocketIOModuleProps = {
-  global?: boolean; // Make module global (default: undefined/false)
-  inject?: Array<any>; // Dependencies to inject into useFactory
-  useFactory: SocketIOConfigFactory; // Factory function that returns config
+  global?: boolean;        // Make module global (default: false)
+  inject?: any[];          // Dependencies to inject into useFactory
+  useFactory: () => Promise<SocketIOServerConfig> | SocketIOServerConfig;
 };
-```
-
-```typescript
-type SocketIOConfigFactory = (...deps: Array<any>) => Promise<SocketIOConfig>;
 ```
 
 ### Basic Usage
@@ -34,7 +30,6 @@ import { SocketIOModule } from "@ehildt/nestjs-socket.io";
   imports: [
     SocketIOModule.registerAsync({
       useFactory: () => ({
-        event: "my-app",
         port: 8080,
         opts: {
           transports: ["websocket", "polling"],
@@ -58,7 +53,6 @@ import { ConfigService } from "./config.service";
     SocketIOModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        event: "my-app",
         port: config.get("SOCKET_IO_PORT"),
         opts: config.get("socketOpts"),
       }),
@@ -75,25 +69,22 @@ export class AppModule {}
   imports: [
     SocketIOModule.registerAsync({
       global: true,
-      inject: [SocketIOConfigService],
-      useFactory: (configService: SocketIOConfigService) =>
-        configService.config,
+      useFactory: () => ({
+        port: 8080,
+        opts: { cors: { origin: "*" } },
+      }),
     }),
   ],
 })
 export class AppModule {}
-
-// Now SocketIOService is available in all modules without importing
+// SocketIOService is now available in all modules without importing
 ```
 
 ## Exports
 
-When registered, the module exports:
-
-| Export             | Type   | Description                                       |
-| ------------------ | ------ | ------------------------------------------------- |
-| `SOCKET_IO_SERVER` | Symbol | Injection token for the Socket.IO Server instance |
-| `SocketIOService`  | Class  | Service for room management and event handling    |
+| Export            | Type   | Description                                       |
+| ----------------- | ------ | ------------------------------------------------- |
+| `SocketIOService` | Class  | Service for room management and event handling    |
 
 ## Complete Example
 
@@ -102,13 +93,12 @@ When registered, the module exports:
 ```typescript
 // socket-io-config.service.ts
 import { Injectable } from "@nestjs/common";
-import { SocketIOConfig, SocketIOConfigSchema } from "@ehildt/nestjs-socket.io";
+import { SocketIOServerConfig } from "@ehildt/nestjs-socket.io";
 
 @Injectable()
 export class SocketIOConfigService {
-  get config(): SocketIOConfig {
+  get config(): SocketIOServerConfig {
     return {
-      event: "my-app",
       port: parseInt(process.env.SOCKET_IO_PORT || "8080"),
       opts: {
         maxHttpBufferSize: parseInt(
@@ -133,18 +123,14 @@ export class SocketIOConfigService {
 ```typescript
 // app.module.ts
 import { Module } from "@nestjs/common";
-import {
-  SocketIOModule,
-  SocketIOConfigService,
-} from "@ehildt/nestjs-socket.io";
+import { SocketIOModule, SocketIOConfigService } from "@ehildt/nestjs-socket.io";
 
 @Module({
   imports: [
     SocketIOModule.registerAsync({
       global: true,
       inject: [SocketIOConfigService],
-      useFactory: (configService: SocketIOConfigService) =>
-        configService.config,
+      useFactory: (configService: SocketIOConfigService) => configService.config,
     }),
   ],
 })
@@ -153,26 +139,50 @@ export class AppModule {}
 
 ### 3. Attach Socket.IO server in main.ts
 
+**Express:**
 ```typescript
 // main.ts
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { SOCKET_IO_SERVER } from "@ehildt/nestjs-socket.io";
+import { SocketIOService } from "@ehildt/nestjs-socket.io";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   await app.init();
 
   const httpServer = app.getHttpServer();
-  const socketIO = app.get(SOCKET_IO_SERVER);
-  socketIO.attach(httpServer);
+  const socketIOService = app.get(SocketIOService);
+  socketIOService.server = new (await import("socket.io")).Server(httpServer);
 
   await app.listen(3000);
 }
 bootstrap();
 ```
 
-> **Important**: You must call `socketIO.attach(httpServer)` after `app.init()` and before or after `app.listen()` to properly attach the Socket.IO server to the NestJS HTTP server.
+**Fastify:**
+```typescript
+// main.ts
+import { NestFactory } from "@nestjs/core";
+import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
+import fastifySocketIO from "fastify-socket.io";
+import { AppModule } from "./app.module";
+import { SocketIOService } from "@ehildt/nestjs-socket.io";
+
+void (async () => {
+  const adapter = new FastifyAdapter();
+  const app = await NestFactory.create<NestFastifyApplication>(AppModule, adapter);
+
+  // Register fastify-socket.io plugin
+  await app.register(fastifySocketIO as any);
+
+  // Get the Fastify instance and access the Socket.IO server
+  const fastifyInstance = app.getHttpAdapter().getInstance();
+  const socketIOService = app.get(SocketIOService);
+  socketIOService.server = (fastifyInstance as any).io;
+
+  await app.listen({ port: 3000 });
+})();
+```
 
 ### 4. Use in any service
 

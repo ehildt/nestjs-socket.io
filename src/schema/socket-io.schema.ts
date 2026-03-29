@@ -1,9 +1,8 @@
 import Joi from "joi";
 
-import { SocketIOConfig } from "../models/socket-io.model.ts";
+import { SocketIOServerConfig } from "../models/socket-io.model.ts";
 
-export const SocketIOConfigSchema = Joi.object<SocketIOConfig>({
-  event: Joi.string().optional(),
+export const SocketIOConfigSchema = Joi.object<SocketIOServerConfig>({
   port: Joi.number().required(),
   opts: Joi.object({
     cleanupEmptyChildNamespaces: Joi.boolean().required(),
@@ -18,5 +17,5 @@ export const SocketIOConfigSchema = Joi.object<SocketIOConfig>({
       credentials: Joi.boolean().required(),
       methods: Joi.array().items(Joi.string().valid("GET", "POST")).required(),
     }).required(),
-  }).required(),
+  }).optional(),
 });

@@ -1,25 +1,28 @@
-import { ServerOptions, Socket } from "socket.io";
+import { DefaultEventsMap, ServerOptions, Socket } from "socket.io";
 
-export type SocketIOConfig = {
-  event: string;
+export type SocketIOServerConfig = {
   port: number;
-  opts: Partial<ServerOptions>;
+  opts?: Partial<ServerOptions>;
 };
-
-export type SocketIOConfigFactory = (...deps: Array<any>) => Promise<SocketIOConfig>;
 
 export type SocketIOModuleProps = {
   global?: boolean;
-  inject: Array<any>;
-  useFactory: SocketIOConfigFactory;
+  inject?: any[];
+  useFactory: () => Promise<SocketIOServerConfig> | SocketIOServerConfig;
 };
 
-export type SocketIOListener<S = Socket, T = any> = (obj: {
+export type SocketEventHandler<S = Socket, T = any> = (obj: {
   socket: S;
   data: T;
   ack: (ok: boolean, error?: string) => void;
 }) => Promise<void> | void;
 
-export type SocketIORecord<S = Socket, T = any> = {
-  [key: PropertyKey]: SocketIOListener<S, T>;
+export type SocketEventMap<S = Socket, T = any> = {
+  [key: PropertyKey]: SocketEventHandler<S, T>;
+};
+
+export type SocketEventPayload = {
+  data: string;
+  ack: (ok: boolean, error?: string) => void;
+  socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, unknown>;
 };

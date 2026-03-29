@@ -1,5 +1,4 @@
-import { Injectable, Inject, Module, Logger } from '@nestjs/common';
-import { Server } from 'socket.io';
+import { Injectable, Module, Logger } from '@nestjs/common';
 import Joi from 'joi';
 
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -10,37 +9,29 @@ var __decorateClass = (decorators, target, key, kind) => {
       result = (decorator(result)) || result;
   return result;
 };
-var __decorateParam = (index, decorator) => (target, key) => decorator(target, key, index);
-
-// src/constants/socket-io.constants.ts
-var SOCKET_IO_SERVER = /* @__PURE__ */ Symbol("SOCKET.IO");
-var SOCKET_IO_EVENT = Object.freeze({
-  TOPIC: "topic",
-  THREAD: "thread",
-  POST: "post",
-  VISION: "vision",
-  TOOL: "tool"
-});
 var SocketIOService = class {
-  constructor(logger, _server) {
+  constructor(logger) {
     this.logger = logger;
-    this._server = _server;
   }
+  _server = null;
   onModuleInit() {
     this.on({
-      joinRoom: this.joinRoom.bind(this),
-      leaveRoom: this.leaveRoom.bind(this)
+      joinRoom: this.joinRoom,
+      leaveRoom: this.leaveRoom
     });
+  }
+  set server(server) {
+    this._server = server;
   }
   get server() {
     return this._server;
   }
   emit(event, message) {
-    this._server.emit(event, message);
+    this._server?.emit(event, message);
     return this;
   }
   emitTo(event, room, message) {
-    this._server.to(room).emit(event, message);
+    this._server?.to(room).emit(event, message);
     return this;
   }
   async joinRoom({ socket, data, ack }) {
@@ -70,7 +61,7 @@ var SocketIOService = class {
   on(event, cb) {
     if (typeof event === "string" && cb) {
       this.logger.log(`Subscribed to event: "${event}"`, "Socket.IO");
-      this._server.on("connection", (socket) => {
+      this._server?.on("connection", (socket) => {
         socket.on(event, async (data, ack) => {
           await cb({ socket, data, ack });
         });
@@ -78,7 +69,7 @@ var SocketIOService = class {
     }
     if (typeof event === "object" && !cb) {
       this.logger.log(`Subscribed to messages: ${JSON.stringify(Object.keys(event))}`, "Socket.IO");
-      this._server.on(
+      this._server?.on(
         "connection",
         (socket) => Object.entries(event).forEach(
           ([key, cb2]) => socket.on(key, async (data, ack) => await cb2({ socket, data, ack }))
@@ -89,8 +80,7 @@ var SocketIOService = class {
   }
 };
 SocketIOService = __decorateClass([
-  Injectable(),
-  __decorateParam(1, Inject(SOCKET_IO_SERVER))
+  Injectable()
 ], SocketIOService);
 
 // src/module/socket-io.module.ts
@@ -99,19 +89,8 @@ var SocketIOModule = class {
     return {
       module: SocketIOModule,
       global: options.global,
-      exports: [SOCKET_IO_SERVER, SocketIOService],
-      providers: [
-        Logger,
-        SocketIOService,
-        {
-          provide: SOCKET_IO_SERVER,
-          inject: options.inject,
-          useFactory: async (...deps) => {
-            const { opts } = await options.useFactory(...deps);
-            return new Server(opts);
-          }
-        }
-      ]
+      exports: [SocketIOService],
+      providers: [Logger, SocketIOService]
     };
   }
 };
@@ -137,4 +116,4 @@ var SocketIOConfigSchema = Joi.object({
   }).required()
 });
 
-export { SOCKET_IO_EVENT, SOCKET_IO_SERVER, SocketIOConfigSchema, SocketIOModule, SocketIOService };
+export { SocketIOConfigSchema, SocketIOModule, SocketIOService };
