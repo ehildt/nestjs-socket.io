@@ -1,5 +1,8 @@
 import { DefaultEventsMap, ServerOptions, Socket } from "socket.io";
 
+export const SOCKET_IO_LOGGER = "SOCKET_IO_LOGGER";
+export const SOCKET_IO_CONFIG = "SOCKET_IO_CONFIG";
+
 export type SocketIOServerConfig = {
   port?: number;
   opts?: Partial<ServerOptions>;
@@ -7,6 +10,8 @@ export type SocketIOServerConfig = {
 
 export type SocketIOModuleProps = {
   global?: boolean;
+  inject?: any[];
+  useFactory: () => SocketIOServerConfig | Promise<SocketIOServerConfig>;
 };
 
 export type SocketEventHandler<S = Socket, T = any> = (obj: {
