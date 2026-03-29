@@ -3,7 +3,7 @@ import Joi from "joi";
 import { SocketIOServerConfig } from "../models/socket-io.model.ts";
 
 export const SocketIOConfigSchema = Joi.object<SocketIOServerConfig>({
-  port: Joi.number().required(),
+  port: Joi.number().optional(),
   opts: Joi.object({
     cleanupEmptyChildNamespaces: Joi.boolean().required(),
     maxHttpBufferSize: Joi.number().required(),

@@ -1,15 +1,13 @@
 import { Socket, DefaultEventsMap, ServerOptions, Server, RemoteSocket, Namespace } from 'socket.io';
-import { DynamicModule, OnModuleInit, LoggerService } from '@nestjs/common';
+import { DynamicModule, OnModuleInit, Logger } from '@nestjs/common';
 import Joi from 'joi';
 
 type SocketIOServerConfig = {
-    port: number;
+    port?: number;
     opts?: Partial<ServerOptions>;
 };
 type SocketIOModuleProps = {
     global?: boolean;
-    inject?: any[];
-    useFactory: () => Promise<SocketIOServerConfig> | SocketIOServerConfig;
 };
 type SocketEventHandler<S = Socket, T = any> = (obj: {
     socket: S;
@@ -35,7 +33,7 @@ declare const SOCKET_IO_LOGGER = "SOCKET_IO_LOGGER";
 declare class SocketIOService implements OnModuleInit {
     private readonly logger;
     private _server;
-    constructor(logger?: LoggerService);
+    constructor(logger: Logger);
     onModuleInit(): void;
     set server(server: Server);
     get server(): Server;

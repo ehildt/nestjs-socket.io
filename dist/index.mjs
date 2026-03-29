@@ -12,7 +12,7 @@ var __decorateClass = (decorators, target, key, kind) => {
 var __decorateParam = (index, decorator) => (target, key) => decorator(target, key, index);
 var SOCKET_IO_LOGGER = "SOCKET_IO_LOGGER";
 var SocketIOService = class {
-  constructor(logger = new Logger(SocketIOService.name)) {
+  constructor(logger) {
     this.logger = logger;
   }
   _server = null;

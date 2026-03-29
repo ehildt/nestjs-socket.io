@@ -1,14 +1,12 @@
 import { DefaultEventsMap, ServerOptions, Socket } from "socket.io";
 
 export type SocketIOServerConfig = {
-  port: number;
+  port?: number;
   opts?: Partial<ServerOptions>;
 };
 
 export type SocketIOModuleProps = {
   global?: boolean;
-  inject?: any[];
-  useFactory: () => Promise<SocketIOServerConfig> | SocketIOServerConfig;
 };
 
 export type SocketEventHandler<S = Socket, T = any> = (obj: {
