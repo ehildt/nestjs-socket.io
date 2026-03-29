@@ -1,5 +1,11 @@
 # @ehildt/nestjs-socket.io
 
+## 1.2.0
+
+### Minor Changes
+
+- 66a7713: Add delegated Socket.IO server methods with chaining support for room management, broadcasting, and middleware. Remove deprecated `event` field from config. Update wiki with Fastify integration docs.
+
 ## 1.1.0
 
 ### Minor Changes

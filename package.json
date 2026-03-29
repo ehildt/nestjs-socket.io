@@ -1,7 +1,7 @@
 {
   "name": "@ehildt/nestjs-socket.io",
   "description": "A lightweight NestJS wrapper around Socket.IO for room management and event handling.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "license": "MIT",
   "type": "module",
   "exports": {
