@@ -1,4 +1,6 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Module, Logger } from '@nestjs/common';
+import { Server } from 'socket.io';
+import Joi from 'joi';
 
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __decorateClass = (decorators, target, key, kind) => {
@@ -12,8 +14,13 @@ var __decorateParam = (index, decorator) => (target, key) => decorator(target, k
 
 // src/constants/socket-io.constants.ts
 var SOCKET_IO_SERVER = /* @__PURE__ */ Symbol("SOCKET.IO");
-
-// src/service/socket-io.service.ts
+var SOCKET_IO_EVENT = Object.freeze({
+  TOPIC: "topic",
+  THREAD: "thread",
+  POST: "post",
+  VISION: "vision",
+  TOOL: "tool"
+});
 var SocketIOService = class {
   constructor(logger, _server) {
     this.logger = logger;
@@ -86,4 +93,48 @@ SocketIOService = __decorateClass([
   __decorateParam(1, Inject(SOCKET_IO_SERVER))
 ], SocketIOService);
 
-export { SocketIOService };
+// src/module/socket-io.module.ts
+var SocketIOModule = class {
+  static registerAsync(options) {
+    return {
+      module: SocketIOModule,
+      global: options.global,
+      exports: [SOCKET_IO_SERVER, SocketIOService],
+      providers: [
+        Logger,
+        SocketIOService,
+        {
+          provide: SOCKET_IO_SERVER,
+          inject: options.inject,
+          useFactory: async (...deps) => {
+            const { opts } = await options.useFactory(...deps);
+            return new Server(opts);
+          }
+        }
+      ]
+    };
+  }
+};
+SocketIOModule = __decorateClass([
+  Module({})
+], SocketIOModule);
+var SocketIOConfigSchema = Joi.object({
+  event: Joi.string().optional(),
+  port: Joi.number().required(),
+  opts: Joi.object({
+    cleanupEmptyChildNamespaces: Joi.boolean().required(),
+    maxHttpBufferSize: Joi.number().required(),
+    pingInterval: Joi.number().required(),
+    pingTimeout: Joi.number().optional(),
+    connectTimeout: Joi.number().required(),
+    allowEIO3: Joi.boolean().required(),
+    transports: Joi.array().items(Joi.string().valid("websocket", "polling", "webtransport")).required(),
+    cors: Joi.object({
+      origin: Joi.string().allow("*").required(),
+      credentials: Joi.boolean().required(),
+      methods: Joi.array().items(Joi.string().valid("GET", "POST")).required()
+    }).required()
+  }).required()
+});
+
+export { SOCKET_IO_EVENT, SOCKET_IO_SERVER, SocketIOConfigSchema, SocketIOModule, SocketIOService };

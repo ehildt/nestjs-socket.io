@@ -151,7 +151,30 @@ import {
 export class AppModule {}
 ```
 
-### 3. Use in any service
+### 3. Attach Socket.IO server in main.ts
+
+```typescript
+// main.ts
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
+import { SOCKET_IO_SERVER } from "@ehildt/nestjs-socket.io";
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  await app.init();
+
+  const httpServer = app.getHttpServer();
+  const socketIO = app.get(SOCKET_IO_SERVER);
+  socketIO.attach(httpServer);
+
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+> **Important**: You must call `socketIO.attach(httpServer)` after `app.init()` and before or after `app.listen()` to properly attach the Socket.IO server to the NestJS HTTP server.
+
+### 4. Use in any service
 
 ```typescript
 // notifications.service.ts

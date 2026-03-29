@@ -2,10 +2,9 @@
 
 # @ehildt/nestjs-socket.io
 
-A NestJS module for Socket.IO integration with room management and event handling.
+A lightweight NestJS wrapper around [Socket.IO](https://socket.io/docs/v4/server-api/) for room management and event handling.
 
 `This library is **ESM-only** and does not support CommonJS.`  
-`Your project must use ES modules.`
 
 </div>
 

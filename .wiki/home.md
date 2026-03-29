@@ -1,6 +1,8 @@
 # @ehildt/nestjs-socket.io
 
-A NestJS module for Socket.IO integration with room management and event handling.
+A lightweight NestJS wrapper around [Socket.IO](https://socket.io/docs/v4/server-api/) for room management and event handling.
+
+This library provides a thin NestJS integration layer around Socket.IO. For the full Socket.IO server API, see the [official Socket.IO documentation](https://socket.io/docs/v4/server-api/).
 
 ## Installation
 
@@ -107,8 +109,32 @@ export class MyService {
 }
 ```
 
+### 3. Attach Socket.IO server in main.ts
+
+After importing SocketIOModule, you need to get the Socket.IO server and attach it to the HTTP server:
+
+```typescript
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
+import { SOCKET_IO_SERVER } from "@ehildt/nestjs-socket.io";
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  await app.init();
+
+  const httpServer = app.getHttpServer();
+  const socketIO = app.get(SOCKET_IO_SERVER);
+  socketIO.attach(httpServer);
+
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+> **Important**: You must call `socketIO.attach(httpServer)` after `app.init()` and before or after `app.listen()` to properly attach the Socket.IO server to the NestJS HTTP server.
+
 ## API Reference
 
-- [SocketIOConfig](./socket-io-config.md) - Configuration type and schema
-- [SocketIOService](./socket-ioservice.md) - Room management and event handling
-- [SocketIOModule](./socket-iomodule.md) - Dynamic module for NestJS
+- [SocketIOConfig](./socket-io.config.md) - Configuration type and schema
+- [SocketIOService](./socket-io.service.md) - Room management and event handling
+- [SocketIOModule](./socket-io.module.md) - Dynamic module for NestJS

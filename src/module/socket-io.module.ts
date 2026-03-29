@@ -19,10 +19,8 @@ export class SocketIOModule {
           provide: SOCKET_IO_SERVER,
           inject: options.inject,
           useFactory: async (...deps) => {
-            const { port, opts } = await options.useFactory(...deps);
-            const server = new Server(opts);
-            server.listen(port);
-            return server;
+            const { opts } = await options.useFactory(...deps);
+            return new Server(opts);
           },
         },
       ],
