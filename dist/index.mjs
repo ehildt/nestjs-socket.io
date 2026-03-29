@@ -221,7 +221,7 @@ SocketIOModule = __decorateClass([
   Module({})
 ], SocketIOModule);
 var SocketIOConfigSchema = Joi.object({
-  port: Joi.number().required(),
+  port: Joi.number().optional(),
   opts: Joi.object({
     cleanupEmptyChildNamespaces: Joi.boolean().required(),
     maxHttpBufferSize: Joi.number().required(),
