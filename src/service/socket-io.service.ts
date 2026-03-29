@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, LoggerService, OnModuleInit } from "@nestjs/common";
+import { Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { DefaultEventsMap, Namespace, RemoteSocket, Server, Socket } from "socket.io";
 
 import { SocketEventHandler, SocketEventMap, SocketEventPayload } from "../models/socket-io.model.ts";
@@ -8,7 +8,7 @@ export const SOCKET_IO_LOGGER = "SOCKET_IO_LOGGER";
 @Injectable()
 export class SocketIOService implements OnModuleInit {
   private _server: Server | null = null;
-  constructor(@Inject(SOCKET_IO_LOGGER) private readonly logger: LoggerService = new Logger(SocketIOService.name)) {}
+  constructor(@Inject(SOCKET_IO_LOGGER) private readonly logger: Logger) {}
 
   onModuleInit() {
     this.on({

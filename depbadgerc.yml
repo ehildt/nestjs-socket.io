@@ -64,6 +64,9 @@ devDependencies:
     - name: "@changesets/cli"
       namedLogo: npm
     - name: "@eslint/js"
+    - name: "@nestjs/testing"
+      namedLogo: npm
+      link: https://github.com/nestjs/nest
       namedLogo: eslint
     - name: "@types/eslint"
       namedLogo: eslint
