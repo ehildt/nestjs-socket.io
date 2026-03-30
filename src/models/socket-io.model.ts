@@ -11,7 +11,7 @@ export type SocketIOServerConfig = {
 export type SocketIOModuleProps = {
   global?: boolean;
   inject?: any[];
-  useFactory: () => SocketIOServerConfig | Promise<SocketIOServerConfig>;
+  useFactory: (...args: any[]) => SocketIOServerConfig | Promise<SocketIOServerConfig>;
 };
 
 export type SocketEventHandler<S = Socket, T = any> = (obj: {

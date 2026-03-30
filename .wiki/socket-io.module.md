@@ -16,7 +16,7 @@ Creates a dynamic module that registers the Socket.IO server.
 type SocketIOModuleProps = {
   global?: boolean;        // Make module global (default: false)
   inject?: any[];          // Dependencies to inject into useFactory
-  useFactory: () => Promise<SocketIOServerConfig> | SocketIOServerConfig;
+  useFactory: (...args: any[]) => Promise<SocketIOServerConfig> | SocketIOServerConfig;
 };
 ```
 

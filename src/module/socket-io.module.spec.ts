@@ -68,6 +68,20 @@ describe("SocketIOModule", () => {
 
       expect(result).toBeDefined();
     });
+
+    it("should pass injected dependencies to useFactory", () => {
+      const result = SocketIOModule.registerAsync({
+        inject: ["DEPENDENCY"],
+        useFactory: (dep: { value: string }) => ({
+          port: 3000,
+          opts: { cors: { origin: dep.value } },
+        }),
+      });
+
+      const configProvider = result.providers?.find((p: any) => p?.provide === SOCKET_IO_CONFIG);
+      expect(configProvider).toBeDefined();
+      expect(result.module).toBe(SocketIOModule);
+    });
   });
 
   describe("integration", () => {
@@ -117,6 +131,21 @@ describe("SocketIOModule", () => {
 
       const service = app.get<SocketIOService>(SocketIOService);
       expect(service).toBeDefined();
+    });
+
+    it("should use injected dependencies in useFactory", async () => {
+      type MockConfigService = { getPort: () => number; getOptions: () => { cors: { origin: string } } };
+      const result = SocketIOModule.registerAsync({
+        inject: ["CONFIG_SERVICE"],
+        useFactory: (configService: MockConfigService) => ({
+          port: configService.getPort(),
+          opts: configService.getOptions(),
+        }),
+      });
+
+      const configProvider = result.providers?.find((p: any) => p?.provide === SOCKET_IO_CONFIG);
+      expect(configProvider).toBeDefined();
+      expect(configProvider?.inject).toContain("CONFIG_SERVICE");
     });
   });
 });
