@@ -1,5 +1,11 @@
 # @ehildt/nestjs-socket.io
 
+## 1.2.6
+
+### Patch Changes
+
+- a3028d0: Allow useFactory to accept injected dependencies via ...args
+
 ## 1.2.5
 
 ### Patch Changes
