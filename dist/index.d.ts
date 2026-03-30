@@ -1,8 +1,7 @@
 import { Socket, DefaultEventsMap, ServerOptions, Server, RemoteSocket, Namespace } from 'socket.io';
-import { DynamicModule, OnModuleInit, Logger } from '@nestjs/common';
+import { DynamicModule } from '@nestjs/common';
 import Joi from 'joi';
 
-declare const SOCKET_IO_LOGGER = "SOCKET_IO_LOGGER";
 declare const SOCKET_IO_CONFIG = "SOCKET_IO_CONFIG";
 type SocketIOServerConfig = {
     port?: number;
@@ -33,12 +32,10 @@ declare class SocketIOModule {
 
 declare const SocketIOConfigSchema: Joi.ObjectSchema<SocketIOServerConfig>;
 
-declare class SocketIOService implements OnModuleInit {
-    private readonly logger;
+declare class SocketIOService {
     private readonly _config;
     private _io;
-    constructor(logger: Logger, _config: SocketIOServerConfig);
-    onModuleInit(): void;
+    constructor(_config: SocketIOServerConfig);
     set io(io: Server);
     get io(): Server;
     get config(): SocketIOServerConfig;
@@ -60,4 +57,4 @@ declare class SocketIOService implements OnModuleInit {
     use(fn: (socket: Socket, next: (err?: Error) => void) => void, cb?: (server: Server) => void): this;
 }
 
-export { SOCKET_IO_CONFIG, SOCKET_IO_LOGGER, type SocketEventHandler, type SocketEventMap, type SocketEventPayload, SocketIOConfigSchema, SocketIOModule, type SocketIOModuleProps, type SocketIOServerConfig, SocketIOService };
+export { SOCKET_IO_CONFIG, type SocketEventHandler, type SocketEventMap, type SocketEventPayload, SocketIOConfigSchema, SocketIOModule, type SocketIOModuleProps, type SocketIOServerConfig, SocketIOService };

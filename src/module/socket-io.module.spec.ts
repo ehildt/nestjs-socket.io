@@ -1,18 +1,9 @@
-import { LoggerService } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 
-import { SOCKET_IO_CONFIG, SOCKET_IO_LOGGER, SocketIOServerConfig } from "../models/socket-io.model.ts";
+import { SOCKET_IO_CONFIG, SocketIOServerConfig } from "../models/socket-io.model.ts";
 import { SocketIOService } from "../service/socket-io.service.ts";
 
 import { SocketIOModule } from "./socket-io.module.ts";
-
-const mockLogger: LoggerService = {
-  log: vi.fn(),
-  error: vi.fn(),
-  warn: vi.fn(),
-  debug: vi.fn(),
-  verbose: vi.fn(),
-};
 
 describe("SocketIOModule", () => {
   let app: TestingModule;
@@ -39,7 +30,6 @@ describe("SocketIOModule", () => {
       expect(result.module).toBe(SocketIOModule);
       expect(result.providers).toContain(SocketIOService);
       expect(result.providers?.some((p: any) => p?.provide === SOCKET_IO_CONFIG)).toBe(true);
-      expect(result.providers?.some((p: any) => p?.provide === SOCKET_IO_LOGGER)).toBe(true);
     });
 
     it("should handle global option", () => {
@@ -96,7 +86,6 @@ describe("SocketIOModule", () => {
           }),
         ],
         providers: [
-          { provide: SOCKET_IO_LOGGER, useValue: mockLogger },
           {
             provide: SOCKET_IO_CONFIG,
             useValue: { port: 3000, opts: { cors: { origin: "*" }, transports: ["websocket", "polling"] } },
@@ -121,7 +110,6 @@ describe("SocketIOModule", () => {
           }),
         ],
         providers: [
-          { provide: SOCKET_IO_LOGGER, useValue: mockLogger },
           {
             provide: SOCKET_IO_CONFIG,
             useValue: { port: 3000, opts: { cors: { origin: "*" }, transports: ["websocket", "polling"] } },

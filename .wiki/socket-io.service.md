@@ -65,45 +65,6 @@ socketService.on({
 });
 ```
 
-### joinRoom({ socket, data, ack }: SocketEventPayload): Promise\<void\>
-
-Makes the socket join a room. Can be used programmatically or as an event handler.
-
-[Socket.IO Docs](https://socket.io/docs/v4/server-socket-instance/#socketjoinroom)
-
-```typescript
-// As event handler (automatically responds to "joinRoom" events from clients)
-socketService.on("joinRoom", socketService.joinRoom);
-
-// Programmatic usage
-socketService.on("connection", async ({ socket }) => {
-  await socketService.joinRoom({
-    socket,
-    data: "user-room",
-    ack: (ok, error) => { console.log(ok ? "Joined!" : error); }
-  });
-});
-```
-
-### leaveRoom({ socket, data, ack }: SocketEventPayload): Promise\<void\>
-
-Makes the socket leave a room. Can be used programmatically or as an event handler.
-
-[Socket.IO Docs](https://socket.io/docs/v4/server-socket-instance/#socketleaveroom)
-
-```typescript
-// As event handler (automatically responds to "leaveRoom" events from clients)
-socketService.on("leaveRoom", socketService.leaveRoom);
-
-// Programmatic usage
-socketService.on("connection", async ({ socket }) => {
-  await socketService.leaveRoom({
-    socket,
-    data: "user-room",
-    ack: (ok, error) => { console.log(ok ? "Left!" : error); }
-  });
-});
-```
 
 ### to(room: string | string[]): this
 

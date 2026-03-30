@@ -1,6 +1,5 @@
 import { DefaultEventsMap, ServerOptions, Socket } from "socket.io";
 
-export const SOCKET_IO_LOGGER = "SOCKET_IO_LOGGER";
 export const SOCKET_IO_CONFIG = "SOCKET_IO_CONFIG";
 
 export type SocketIOServerConfig = {

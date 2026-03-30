@@ -1,9 +1,8 @@
-import { Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { DefaultEventsMap, Namespace, RemoteSocket, Server, Socket } from "socket.io";
 
 import {
   SOCKET_IO_CONFIG,
-  SOCKET_IO_LOGGER,
   SocketEventHandler,
   SocketEventMap,
   SocketEventPayload,
@@ -11,19 +10,9 @@ import {
 } from "../models/socket-io.model.ts";
 
 @Injectable()
-export class SocketIOService implements OnModuleInit {
+export class SocketIOService {
   private _io: Server | null = null;
-  constructor(
-    @Inject(SOCKET_IO_LOGGER) private readonly logger: Logger,
-    @Inject(SOCKET_IO_CONFIG) private readonly _config: SocketIOServerConfig,
-  ) {}
-
-  onModuleInit() {
-    this.on({
-      joinRoom: this.joinRoom,
-      leaveRoom: this.leaveRoom,
-    });
-  }
+  constructor(@Inject(SOCKET_IO_CONFIG) private readonly _config: SocketIOServerConfig) {}
 
   set io(io: Server) {
     this._io = io;
@@ -60,15 +49,12 @@ export class SocketIOService implements OnModuleInit {
    * @see https://socket.io/docs/v4/server-socket-instance/#socketjoinroom
    */
   public async joinRoom({ socket, data, ack }: SocketEventPayload) {
-    this.logger.log("attempting to join room", data);
     try {
       await socket.join(data);
       ack(true);
-      this.logger.log(`client with id ${socket.id} joined room ${data}`, "Socket.IO");
     } catch (error: unknown) {
       const err = error as Error;
       ack(false, err.message);
-      this.logger.log(`client with id ${socket.id} error joining room ${data}`, "Socket.IO");
     }
   }
 
@@ -77,15 +63,12 @@ export class SocketIOService implements OnModuleInit {
    * @see https://socket.io/docs/v4/server-socket-instance/#socketleaveroom
    */
   public async leaveRoom({ socket, data, ack }: SocketEventPayload) {
-    this.logger.log("attempting to leave room", data);
     try {
       await socket.leave(data);
       ack(true);
-      this.logger.log(`client with id ${socket.id} left room ${data}`, "Socket.IO");
     } catch (error: unknown) {
       const err = error as Error;
       ack(false, err.message);
-      this.logger.log(`client with id ${socket.id} error leaving room ${data}`, "Socket.IO");
     }
   }
 
@@ -95,7 +78,6 @@ export class SocketIOService implements OnModuleInit {
    */
   public on<T = any>(event: string | SocketEventMap, cb?: SocketEventHandler<Socket, T>) {
     if (typeof event === "string" && cb) {
-      this.logger.log(`Subscribed to event: "${event}"`, "Socket.IO");
       this._io?.on("connection", (socket) => {
         socket.on(event, async (data, ack) => {
           await cb({ socket, data, ack });
@@ -104,7 +86,6 @@ export class SocketIOService implements OnModuleInit {
     }
 
     if (typeof event === "object" && !cb) {
-      this.logger.log(`Subscribed to messages: ${JSON.stringify(Object.keys(event))}`, "Socket.IO");
       this._io?.on("connection", (socket) =>
         Object.entries(event).forEach(([key, cb]) =>
           socket.on(key, async (data, ack) => await cb({ socket, data, ack })),

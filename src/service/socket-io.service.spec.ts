@@ -1,8 +1,7 @@
-import { LoggerService } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { Server } from "socket.io";
 
-import { SOCKET_IO_CONFIG, SOCKET_IO_LOGGER } from "../models/socket-io.model.ts";
+import { SOCKET_IO_CONFIG } from "../models/socket-io.model.ts";
 
 import { SocketIOService } from "./socket-io.service.ts";
 
@@ -23,17 +22,9 @@ describe("SocketIOService", () => {
     use: ReturnType<typeof vi.fn>;
     on: ReturnType<typeof vi.fn>;
   };
-  let mockLogger: LoggerService;
   let app: TestingModule;
 
   beforeEach(async () => {
-    mockLogger = {
-      log: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-      verbose: vi.fn(),
-    };
     mockServer = {
       emit: vi.fn(),
       to: vi.fn().mockReturnThis(),
@@ -53,7 +44,6 @@ describe("SocketIOService", () => {
     app = await Test.createTestingModule({
       providers: [
         SocketIOService,
-        { provide: SOCKET_IO_LOGGER, useValue: mockLogger },
         {
           provide: SOCKET_IO_CONFIG,
           useValue: { port: 3000, opts: { cors: { origin: "*" }, transports: ["websocket", "polling"] } },
@@ -137,14 +127,6 @@ describe("SocketIOService", () => {
       connectionHandler(mockSocket);
 
       expect(mockSocket.on).toHaveBeenCalledWith("my-event", expect.any(Function));
-    });
-  });
-
-  describe("onModuleInit", () => {
-    it("should register joinRoom and leaveRoom handlers", () => {
-      service.onModuleInit();
-
-      expect(mockServer.on).toHaveBeenCalledWith("connection", expect.any(Function));
     });
   });
 

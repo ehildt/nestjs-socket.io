@@ -1,4 +1,4 @@
-import { Injectable, Inject, Module, Logger } from '@nestjs/common';
+import { Injectable, Inject, Module } from '@nestjs/common';
 import Joi from 'joi';
 
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -12,20 +12,12 @@ var __decorateClass = (decorators, target, key, kind) => {
 var __decorateParam = (index, decorator) => (target, key) => decorator(target, key, index);
 
 // src/models/socket-io.model.ts
-var SOCKET_IO_LOGGER = "SOCKET_IO_LOGGER";
 var SOCKET_IO_CONFIG = "SOCKET_IO_CONFIG";
 var SocketIOService = class {
-  constructor(logger, _config) {
-    this.logger = logger;
+  constructor(_config) {
     this._config = _config;
   }
   _io = null;
-  onModuleInit() {
-    this.on({
-      joinRoom: this.joinRoom,
-      leaveRoom: this.leaveRoom
-    });
-  }
   set io(io) {
     this._io = io;
   }
@@ -56,15 +48,12 @@ var SocketIOService = class {
    * @see https://socket.io/docs/v4/server-socket-instance/#socketjoinroom
    */
   async joinRoom({ socket, data, ack }) {
-    this.logger.log("attempting to join room", data);
     try {
       await socket.join(data);
       ack(true);
-      this.logger.log(`client with id ${socket.id} joined room ${data}`, "Socket.IO");
     } catch (error) {
       const err = error;
       ack(false, err.message);
-      this.logger.log(`client with id ${socket.id} error joining room ${data}`, "Socket.IO");
     }
   }
   /**
@@ -72,15 +61,12 @@ var SocketIOService = class {
    * @see https://socket.io/docs/v4/server-socket-instance/#socketleaveroom
    */
   async leaveRoom({ socket, data, ack }) {
-    this.logger.log("attempting to leave room", data);
     try {
       await socket.leave(data);
       ack(true);
-      this.logger.log(`client with id ${socket.id} left room ${data}`, "Socket.IO");
     } catch (error) {
       const err = error;
       ack(false, err.message);
-      this.logger.log(`client with id ${socket.id} error leaving room ${data}`, "Socket.IO");
     }
   }
   /**
@@ -89,7 +75,6 @@ var SocketIOService = class {
    */
   on(event, cb) {
     if (typeof event === "string" && cb) {
-      this.logger.log(`Subscribed to event: "${event}"`, "Socket.IO");
       this._io?.on("connection", (socket) => {
         socket.on(event, async (data, ack) => {
           await cb({ socket, data, ack });
@@ -97,7 +82,6 @@ var SocketIOService = class {
       });
     }
     if (typeof event === "object" && !cb) {
-      this.logger.log(`Subscribed to messages: ${JSON.stringify(Object.keys(event))}`, "Socket.IO");
       this._io?.on(
         "connection",
         (socket) => Object.entries(event).forEach(
@@ -210,8 +194,7 @@ var SocketIOService = class {
 };
 SocketIOService = __decorateClass([
   Injectable(),
-  __decorateParam(0, Inject(SOCKET_IO_LOGGER)),
-  __decorateParam(1, Inject(SOCKET_IO_CONFIG))
+  __decorateParam(0, Inject(SOCKET_IO_CONFIG))
 ], SocketIOService);
 
 // src/module/socket-io.module.ts
@@ -222,7 +205,6 @@ var SocketIOModule = class {
       global: options.global,
       exports: [SocketIOService],
       providers: [
-        { provide: SOCKET_IO_LOGGER, useValue: new Logger(SocketIOService.name) },
         SocketIOService,
         {
           inject: options.inject,
@@ -254,4 +236,4 @@ var SocketIOConfigSchema = Joi.object({
   }).optional()
 });
 
-export { SOCKET_IO_CONFIG, SOCKET_IO_LOGGER, SocketIOConfigSchema, SocketIOModule, SocketIOService };
+export { SOCKET_IO_CONFIG, SocketIOConfigSchema, SocketIOModule, SocketIOService };
