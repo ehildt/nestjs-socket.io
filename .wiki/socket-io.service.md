@@ -264,13 +264,22 @@ socketService.use((socket, next) => {
 });
 ```
 
-### server: Server
+### io: Server
 
 Access to the underlying Socket.IO server instance.
 
 ```typescript
-const ioServer = socketService.server;
+const ioServer = socketService.io;
 // Use any Socket.IO server methods directly
+```
+
+### config: SocketIOServerConfig
+
+Returns the Socket.IO server configuration.
+
+```typescript
+const config = socketService.config;
+// Access configured options like config.opts.cors
 ```
 
 ## Chaining Example

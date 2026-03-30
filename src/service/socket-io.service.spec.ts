@@ -2,7 +2,9 @@ import { LoggerService } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { Server } from "socket.io";
 
-import { SOCKET_IO_LOGGER, SocketIOService } from "./socket-io.service.ts";
+import { SOCKET_IO_CONFIG, SOCKET_IO_LOGGER } from "../models/socket-io.model.ts";
+
+import { SocketIOService } from "./socket-io.service.ts";
 
 describe("SocketIOService", () => {
   let service: SocketIOService;
@@ -49,24 +51,31 @@ describe("SocketIOService", () => {
     };
 
     app = await Test.createTestingModule({
-      providers: [SocketIOService, { provide: SOCKET_IO_LOGGER, useValue: mockLogger }],
+      providers: [
+        SocketIOService,
+        { provide: SOCKET_IO_LOGGER, useValue: mockLogger },
+        {
+          provide: SOCKET_IO_CONFIG,
+          useValue: { port: 3000, opts: { cors: { origin: "*" }, transports: ["websocket", "polling"] } },
+        },
+      ],
     }).compile();
 
     service = app.get<SocketIOService>(SocketIOService);
-    service.server = mockServer as unknown as Server;
+    service.io = mockServer as unknown as Server;
   });
 
   afterEach(async () => {
     await app.close();
   });
 
-  describe("server", () => {
+  describe("io", () => {
     it("should get and set the server instance", () => {
-      expect(service.server).toBe(mockServer);
+      expect(service.io).toBe(mockServer);
 
       const newServer = { emit: vi.fn(), to: vi.fn(), on: vi.fn() } as unknown as Server;
-      service.server = newServer;
-      expect(service.server).toBe(newServer);
+      service.io = newServer;
+      expect(service.io).toBe(newServer);
     });
   });
 

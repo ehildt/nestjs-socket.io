@@ -2,12 +2,16 @@ import { Socket, DefaultEventsMap, ServerOptions, Server, RemoteSocket, Namespac
 import { DynamicModule, OnModuleInit, Logger } from '@nestjs/common';
 import Joi from 'joi';
 
+declare const SOCKET_IO_LOGGER = "SOCKET_IO_LOGGER";
+declare const SOCKET_IO_CONFIG = "SOCKET_IO_CONFIG";
 type SocketIOServerConfig = {
     port?: number;
     opts?: Partial<ServerOptions>;
 };
 type SocketIOModuleProps = {
     global?: boolean;
+    inject?: any[];
+    useFactory: () => SocketIOServerConfig | Promise<SocketIOServerConfig>;
 };
 type SocketEventHandler<S = Socket, T = any> = (obj: {
     socket: S;
@@ -29,14 +33,15 @@ declare class SocketIOModule {
 
 declare const SocketIOConfigSchema: Joi.ObjectSchema<SocketIOServerConfig>;
 
-declare const SOCKET_IO_LOGGER = "SOCKET_IO_LOGGER";
 declare class SocketIOService implements OnModuleInit {
     private readonly logger;
-    private _server;
-    constructor(logger: Logger);
+    private readonly _config;
+    private _io;
+    constructor(logger: Logger, _config: SocketIOServerConfig);
     onModuleInit(): void;
-    set server(server: Server);
-    get server(): Server;
+    set io(io: Server);
+    get io(): Server;
+    get config(): SocketIOServerConfig;
     emit<T = unknown>(event: string, message: T): this;
     emitTo<T = unknown>(event: string, room: string, message: T): this;
     joinRoom({ socket, data, ack }: SocketEventPayload): Promise<void>;
@@ -55,4 +60,4 @@ declare class SocketIOService implements OnModuleInit {
     use(fn: (socket: Socket, next: (err?: Error) => void) => void, cb?: (server: Server) => void): this;
 }
 
-export { SOCKET_IO_LOGGER, type SocketEventHandler, type SocketEventMap, type SocketEventPayload, SocketIOConfigSchema, SocketIOModule, type SocketIOModuleProps, type SocketIOServerConfig, SocketIOService };
+export { SOCKET_IO_CONFIG, SOCKET_IO_LOGGER, type SocketEventHandler, type SocketEventMap, type SocketEventPayload, SocketIOConfigSchema, SocketIOModule, type SocketIOModuleProps, type SocketIOServerConfig, SocketIOService };

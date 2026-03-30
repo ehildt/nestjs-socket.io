@@ -12,7 +12,7 @@ import {
 
 @Injectable()
 export class SocketIOService implements OnModuleInit {
-  private _server: Server | null = null;
+  private _io: Server | null = null;
   constructor(
     @Inject(SOCKET_IO_LOGGER) private readonly logger: Logger,
     @Inject(SOCKET_IO_CONFIG) private readonly _config: SocketIOServerConfig,
@@ -25,12 +25,12 @@ export class SocketIOService implements OnModuleInit {
     });
   }
 
-  set server(server: Server) {
-    this._server = server;
+  set io(io: Server) {
+    this._io = io;
   }
 
-  get server() {
-    return this._server as Server;
+  get io() {
+    return this._io as Server;
   }
 
   get config() {
@@ -42,7 +42,7 @@ export class SocketIOService implements OnModuleInit {
    * @see https://socket.io/docs/v4/server-api/#serveremiteventname-args
    */
   public emit<T = unknown>(event: string, message: T) {
-    this._server?.emit(event, message);
+    this._io?.emit(event, message);
     return this;
   }
 
@@ -51,7 +51,7 @@ export class SocketIOService implements OnModuleInit {
    * @see https://socket.io/docs/v4/server-api/#serveremit-eventname-args
    */
   public emitTo<T = unknown>(event: string, room: string, message: T) {
-    this._server?.to(room).emit(event, message);
+    this._io?.to(room).emit(event, message);
     return this;
   }
 
@@ -96,7 +96,7 @@ export class SocketIOService implements OnModuleInit {
   public on<T = any>(event: string | SocketEventMap, cb?: SocketEventHandler<Socket, T>) {
     if (typeof event === "string" && cb) {
       this.logger.log(`Subscribed to event: "${event}"`, "Socket.IO");
-      this._server?.on("connection", (socket) => {
+      this._io?.on("connection", (socket) => {
         socket.on(event, async (data, ack) => {
           await cb({ socket, data, ack });
         });
@@ -105,7 +105,7 @@ export class SocketIOService implements OnModuleInit {
 
     if (typeof event === "object" && !cb) {
       this.logger.log(`Subscribed to messages: ${JSON.stringify(Object.keys(event))}`, "Socket.IO");
-      this._server?.on("connection", (socket) =>
+      this._io?.on("connection", (socket) =>
         Object.entries(event).forEach(([key, cb]) =>
           socket.on(key, async (data, ack) => await cb({ socket, data, ack })),
         ),
@@ -121,7 +121,7 @@ export class SocketIOService implements OnModuleInit {
    * @see https://socket.io/docs/v4/server-api/#servertoroom
    */
   public to(room: string | string[]): this {
-    this._server?.to(room);
+    this._io?.to(room);
     return this;
   }
 
@@ -130,7 +130,7 @@ export class SocketIOService implements OnModuleInit {
    * @see https://socket.io/docs/v4/server-api/#serverinroom
    */
   public in(room: string | string[]): this {
-    this._server?.in(room);
+    this._io?.in(room);
     return this;
   }
 
@@ -140,7 +140,7 @@ export class SocketIOService implements OnModuleInit {
    * @see https://socket.io/docs/v4/server-api/#serverexceptrooms
    */
   public except(room: string | string[]): this {
-    this._server?.except(room);
+    this._io?.except(room);
     return this;
   }
 
@@ -151,7 +151,7 @@ export class SocketIOService implements OnModuleInit {
    * @see https://socket.io/docs/v4/server-api/#servertimeoutvalue
    */
   public timeout(ms: number): this {
-    this._server?.timeout(ms);
+    this._io?.timeout(ms);
     return this;
   }
 
@@ -160,7 +160,7 @@ export class SocketIOService implements OnModuleInit {
    * @see https://socket.io/docs/v4/server-api/#serverfetchsockets
    */
   public fetchSockets(cb: (sockets: RemoteSocket<DefaultEventsMap, unknown>[]) => void): this {
-    void this._server?.fetchSockets().then(cb);
+    void this._io?.fetchSockets().then(cb);
     return this;
   }
 
@@ -169,7 +169,7 @@ export class SocketIOService implements OnModuleInit {
    * @see https://socket.io/docs/v4/server-api/#serversocketsjoinrooms
    */
   public socketsJoin(rooms: string | string[], cb?: () => void): this {
-    this._server?.socketsJoin(rooms);
+    this._io?.socketsJoin(rooms);
     cb?.();
     return this;
   }
@@ -179,7 +179,7 @@ export class SocketIOService implements OnModuleInit {
    * @see https://socket.io/docs/v4/server-api/#serversocketsleaverooms
    */
   public socketsLeave(rooms: string | string[], cb?: () => void): this {
-    this._server?.socketsLeave(rooms);
+    this._io?.socketsLeave(rooms);
     cb?.();
     return this;
   }
@@ -189,7 +189,7 @@ export class SocketIOService implements OnModuleInit {
    * @see https://socket.io/docs/v4/server-api/#serverdisconnectsocketsclose
    */
   public disconnectSockets(close?: boolean, cb?: () => void): this {
-    void this._server?.disconnectSockets(close);
+    void this._io?.disconnectSockets(close);
     cb?.();
     return this;
   }
@@ -201,10 +201,10 @@ export class SocketIOService implements OnModuleInit {
   public close(cb?: () => void): this {
     if (cb) {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this._server?.close(cb);
+      this._io?.close(cb);
     } else {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this._server?.close();
+      this._io?.close();
     }
     return this;
   }
@@ -214,7 +214,7 @@ export class SocketIOService implements OnModuleInit {
    * @see https://socket.io/docs/v4/server-api/#serverofnsp
    */
   public of(nsp: string, cb: (ns: Namespace) => void): this {
-    cb(this._server?.of(nsp) as Namespace);
+    cb(this._io?.of(nsp) as Namespace);
     return this;
   }
 
@@ -223,8 +223,8 @@ export class SocketIOService implements OnModuleInit {
    * @see https://socket.io/docs/v4/server-api/#serverusefn
    */
   public use(fn: (socket: Socket, next: (err?: Error) => void) => void, cb?: (server: Server) => void): this {
-    this._server?.use(fn);
-    cb?.(this._server as Server);
+    this._io?.use(fn);
+    cb?.(this._io as Server);
     return this;
   }
 }

@@ -10,30 +10,37 @@ var __decorateClass = (decorators, target, key, kind) => {
   return result;
 };
 var __decorateParam = (index, decorator) => (target, key) => decorator(target, key, index);
+
+// src/models/socket-io.model.ts
 var SOCKET_IO_LOGGER = "SOCKET_IO_LOGGER";
+var SOCKET_IO_CONFIG = "SOCKET_IO_CONFIG";
 var SocketIOService = class {
-  constructor(logger) {
+  constructor(logger, _config) {
     this.logger = logger;
+    this._config = _config;
   }
-  _server = null;
+  _io = null;
   onModuleInit() {
     this.on({
       joinRoom: this.joinRoom,
       leaveRoom: this.leaveRoom
     });
   }
-  set server(server) {
-    this._server = server;
+  set io(io) {
+    this._io = io;
   }
-  get server() {
-    return this._server;
+  get io() {
+    return this._io;
+  }
+  get config() {
+    return this._config;
   }
   /**
    * Emits an event to all connected clients in the main namespace.
    * @see https://socket.io/docs/v4/server-api/#serveremiteventname-args
    */
   emit(event, message) {
-    this._server?.emit(event, message);
+    this._io?.emit(event, message);
     return this;
   }
   /**
@@ -41,7 +48,7 @@ var SocketIOService = class {
    * @see https://socket.io/docs/v4/server-api/#serveremit-eventname-args
    */
   emitTo(event, room, message) {
-    this._server?.to(room).emit(event, message);
+    this._io?.to(room).emit(event, message);
     return this;
   }
   /**
@@ -83,7 +90,7 @@ var SocketIOService = class {
   on(event, cb) {
     if (typeof event === "string" && cb) {
       this.logger.log(`Subscribed to event: "${event}"`, "Socket.IO");
-      this._server?.on("connection", (socket) => {
+      this._io?.on("connection", (socket) => {
         socket.on(event, async (data, ack) => {
           await cb({ socket, data, ack });
         });
@@ -91,7 +98,7 @@ var SocketIOService = class {
     }
     if (typeof event === "object" && !cb) {
       this.logger.log(`Subscribed to messages: ${JSON.stringify(Object.keys(event))}`, "Socket.IO");
-      this._server?.on(
+      this._io?.on(
         "connection",
         (socket) => Object.entries(event).forEach(
           ([key, cb2]) => socket.on(key, async (data, ack) => await cb2({ socket, data, ack }))
@@ -106,7 +113,7 @@ var SocketIOService = class {
    * @see https://socket.io/docs/v4/server-api/#servertoroom
    */
   to(room) {
-    this._server?.to(room);
+    this._io?.to(room);
     return this;
   }
   /**
@@ -114,7 +121,7 @@ var SocketIOService = class {
    * @see https://socket.io/docs/v4/server-api/#serverinroom
    */
   in(room) {
-    this._server?.in(room);
+    this._io?.in(room);
     return this;
   }
   /**
@@ -123,7 +130,7 @@ var SocketIOService = class {
    * @see https://socket.io/docs/v4/server-api/#serverexceptrooms
    */
   except(room) {
-    this._server?.except(room);
+    this._io?.except(room);
     return this;
   }
   /**
@@ -133,7 +140,7 @@ var SocketIOService = class {
    * @see https://socket.io/docs/v4/server-api/#servertimeoutvalue
    */
   timeout(ms) {
-    this._server?.timeout(ms);
+    this._io?.timeout(ms);
     return this;
   }
   /**
@@ -141,7 +148,7 @@ var SocketIOService = class {
    * @see https://socket.io/docs/v4/server-api/#serverfetchsockets
    */
   fetchSockets(cb) {
-    void this._server?.fetchSockets().then(cb);
+    void this._io?.fetchSockets().then(cb);
     return this;
   }
   /**
@@ -149,7 +156,7 @@ var SocketIOService = class {
    * @see https://socket.io/docs/v4/server-api/#serversocketsjoinrooms
    */
   socketsJoin(rooms, cb) {
-    this._server?.socketsJoin(rooms);
+    this._io?.socketsJoin(rooms);
     cb?.();
     return this;
   }
@@ -158,7 +165,7 @@ var SocketIOService = class {
    * @see https://socket.io/docs/v4/server-api/#serversocketsleaverooms
    */
   socketsLeave(rooms, cb) {
-    this._server?.socketsLeave(rooms);
+    this._io?.socketsLeave(rooms);
     cb?.();
     return this;
   }
@@ -167,7 +174,7 @@ var SocketIOService = class {
    * @see https://socket.io/docs/v4/server-api/#serverdisconnectsocketsclose
    */
   disconnectSockets(close, cb) {
-    void this._server?.disconnectSockets(close);
+    void this._io?.disconnectSockets(close);
     cb?.();
     return this;
   }
@@ -177,9 +184,9 @@ var SocketIOService = class {
    */
   close(cb) {
     if (cb) {
-      this._server?.close(cb);
+      this._io?.close(cb);
     } else {
-      this._server?.close();
+      this._io?.close();
     }
     return this;
   }
@@ -188,7 +195,7 @@ var SocketIOService = class {
    * @see https://socket.io/docs/v4/server-api/#serverofnsp
    */
   of(nsp, cb) {
-    cb(this._server?.of(nsp));
+    cb(this._io?.of(nsp));
     return this;
   }
   /**
@@ -196,14 +203,15 @@ var SocketIOService = class {
    * @see https://socket.io/docs/v4/server-api/#serverusefn
    */
   use(fn, cb) {
-    this._server?.use(fn);
-    cb?.(this._server);
+    this._io?.use(fn);
+    cb?.(this._io);
     return this;
   }
 };
 SocketIOService = __decorateClass([
   Injectable(),
-  __decorateParam(0, Inject(SOCKET_IO_LOGGER))
+  __decorateParam(0, Inject(SOCKET_IO_LOGGER)),
+  __decorateParam(1, Inject(SOCKET_IO_CONFIG))
 ], SocketIOService);
 
 // src/module/socket-io.module.ts
@@ -213,7 +221,15 @@ var SocketIOModule = class {
       module: SocketIOModule,
       global: options.global,
       exports: [SocketIOService],
-      providers: [{ provide: SOCKET_IO_LOGGER, useValue: new Logger(SocketIOService.name) }, SocketIOService]
+      providers: [
+        { provide: SOCKET_IO_LOGGER, useValue: new Logger(SocketIOService.name) },
+        SocketIOService,
+        {
+          inject: options.inject,
+          provide: SOCKET_IO_CONFIG,
+          useFactory: options.useFactory
+        }
+      ]
     };
   }
 };
@@ -238,4 +254,4 @@ var SocketIOConfigSchema = Joi.object({
   }).optional()
 });
 
-export { SOCKET_IO_LOGGER, SocketIOConfigSchema, SocketIOModule, SocketIOService };
+export { SOCKET_IO_CONFIG, SOCKET_IO_LOGGER, SocketIOConfigSchema, SocketIOModule, SocketIOService };

@@ -30,7 +30,6 @@ import { SocketIOModule } from "@ehildt/nestjs-socket.io";
   imports: [
     SocketIOModule.registerAsync({
       useFactory: () => ({
-        port: 8080,
         opts: {
           transports: ["websocket", "polling"],
         },
@@ -53,7 +52,6 @@ import { ConfigService } from "./config.service";
     SocketIOModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        port: config.get("SOCKET_IO_PORT"),
         opts: config.get("socketOpts"),
       }),
     }),
@@ -70,7 +68,6 @@ export class AppModule {}
     SocketIOModule.registerAsync({
       global: true,
       useFactory: () => ({
-        port: 8080,
         opts: { cors: { origin: "*" } },
       }),
     }),
@@ -99,7 +96,6 @@ import { SocketIOServerConfig } from "@ehildt/nestjs-socket.io";
 export class SocketIOConfigService {
   get config(): SocketIOServerConfig {
     return {
-      port: parseInt(process.env.SOCKET_IO_PORT || "8080"),
       opts: {
         maxHttpBufferSize: parseInt(
           process.env.SOCKET_IO_MAX_HTTP_BUFFER_SIZE || "262144"
@@ -146,17 +142,16 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { SocketIOService } from "@ehildt/nestjs-socket.io";
 
-async function bootstrap() {
+void (async () => {
   const app = await NestFactory.create(AppModule);
   await app.init();
 
   const httpServer = app.getHttpServer();
   const socketIOService = app.get(SocketIOService);
-  socketIOService.server = new (await import("socket.io")).Server(httpServer);
+  socketIOService.io = new (await import("socket.io")).Server(httpServer, socketIOService.config.opts);
 
   await app.listen(3000);
-}
-bootstrap();
+})();
 ```
 
 **Fastify:**
@@ -172,13 +167,13 @@ void (async () => {
   const adapter = new FastifyAdapter();
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, adapter);
 
-  // Register fastify-socket.io plugin
-  await app.register(fastifySocketIO as any);
+  // Get SocketIOService and register fastify-socket.io with config
+  const socketIOService = app.get(SocketIOService);
+  await app.register(fastifySocketIO as any, socketIOService.config.opts);
 
   // Get the Fastify instance and access the Socket.IO server
   const fastifyInstance = app.getHttpAdapter().getInstance();
-  const socketIOService = app.get(SocketIOService);
-  socketIOService.server = (fastifyInstance as any).io;
+  socketIOService.io = (fastifyInstance as any).io;
 
   await app.listen({ port: 3000 });
 })();

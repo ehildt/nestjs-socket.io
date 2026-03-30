@@ -34,7 +34,6 @@ import { SocketIOModule } from "@ehildt/nestjs-socket.io";
   imports: [
     SocketIOModule.registerAsync({
       useFactory: () => ({
-        port: 8080,
         opts: { cors: { origin: "*" } },
       }),
     }),
@@ -51,17 +50,16 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { SocketIOService } from "@ehildt/nestjs-socket.io";
 
-async function bootstrap() {
+void (async () => {
   const app = await NestFactory.create(AppModule);
   await app.init();
 
   const httpServer = app.getHttpServer();
   const socketIOService = app.get(SocketIOService);
-  socketIOService.server = new (await import("socket.io")).Server(httpServer);
+  socketIOService.io = new (await import("socket.io")).Server(httpServer, socketIOService.config.opts);
 
   await app.listen(3000);
-}
-bootstrap();
+})();
 ```
 
 **Fastify:**
@@ -76,11 +74,11 @@ void (async () => {
   const adapter = new FastifyAdapter();
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, adapter);
 
-  await app.register(fastifySocketIO as any);
+  const socketIOService = app.get(SocketIOService);
+  await app.register(fastifySocketIO as any, socketIOService.config.opts);
 
   const fastifyInstance = app.getHttpAdapter().getInstance();
-  const socketIOService = app.get(SocketIOService);
-  socketIOService.server = (fastifyInstance as any).io;
+  socketIOService.io = (fastifyInstance as any).io;
 
   await app.listen({ port: 3000 });
 })();

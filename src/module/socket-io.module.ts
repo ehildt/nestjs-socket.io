@@ -14,6 +14,7 @@ export class SocketIOModule {
         { provide: SOCKET_IO_LOGGER, useValue: new Logger(SocketIOService.name) },
         SocketIOService,
         {
+          inject: options.inject,
           provide: SOCKET_IO_CONFIG,
           useFactory: options.useFactory,
         },

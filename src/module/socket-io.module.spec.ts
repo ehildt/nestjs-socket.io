@@ -1,8 +1,8 @@
 import { LoggerService } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 
-import { SocketIOServerConfig } from "../models/socket-io.model.ts";
-import { SOCKET_IO_LOGGER, SocketIOService } from "../service/socket-io.service.ts";
+import { SOCKET_IO_CONFIG, SOCKET_IO_LOGGER, SocketIOServerConfig } from "../models/socket-io.model.ts";
+import { SocketIOService } from "../service/socket-io.service.ts";
 
 import { SocketIOModule } from "./socket-io.module.ts";
 
@@ -38,6 +38,7 @@ describe("SocketIOModule", () => {
 
       expect(result.module).toBe(SocketIOModule);
       expect(result.providers).toContain(SocketIOService);
+      expect(result.providers?.some((p: any) => p?.provide === SOCKET_IO_CONFIG)).toBe(true);
       expect(result.providers?.some((p: any) => p?.provide === SOCKET_IO_LOGGER)).toBe(true);
     });
 
@@ -75,18 +76,23 @@ describe("SocketIOModule", () => {
         imports: [
           SocketIOModule.registerAsync({
             useFactory: () => ({
-              event: "test",
               port: 3000,
-              opts: { transports: ["websocket"] },
+              opts: { cors: { origin: "*" }, transports: ["websocket", "polling"] },
             }),
           }),
         ],
-        providers: [{ provide: SOCKET_IO_LOGGER, useValue: mockLogger }],
+        providers: [
+          { provide: SOCKET_IO_LOGGER, useValue: mockLogger },
+          {
+            provide: SOCKET_IO_CONFIG,
+            useValue: { port: 3000, opts: { cors: { origin: "*" }, transports: ["websocket", "polling"] } },
+          },
+        ],
       }).compile();
 
       const service = app.get<SocketIOService>(SocketIOService);
       expect(service).toBeDefined();
-      expect(service.server).toBeDefined();
+      expect(service.io).toBeDefined();
     });
 
     it("should provide SocketIOService when module is global", async () => {
@@ -95,13 +101,18 @@ describe("SocketIOModule", () => {
           SocketIOModule.registerAsync({
             global: true,
             useFactory: () => ({
-              event: "test",
               port: 3000,
-              opts: { transports: ["websocket"] },
+              opts: { cors: { origin: "*" }, transports: ["websocket", "polling"] },
             }),
           }),
         ],
-        providers: [{ provide: SOCKET_IO_LOGGER, useValue: mockLogger }],
+        providers: [
+          { provide: SOCKET_IO_LOGGER, useValue: mockLogger },
+          {
+            provide: SOCKET_IO_CONFIG,
+            useValue: { port: 3000, opts: { cors: { origin: "*" }, transports: ["websocket", "polling"] } },
+          },
+        ],
       }).compile();
 
       const service = app.get<SocketIOService>(SocketIOService);

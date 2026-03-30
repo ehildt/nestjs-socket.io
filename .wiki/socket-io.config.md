@@ -6,7 +6,7 @@ Configuration object for Socket.IO server.
 
 ```typescript
 type SocketIOServerConfig = {
-  port: number;
+  port?: number;
   opts?: Partial<ServerOptions>;
 };
 ```
@@ -15,7 +15,7 @@ type SocketIOServerConfig = {
 
 | Property | Type                      | Required | Description                          |
 | -------- | ------------------------- | -------- | ------------------------------------ |
-| `port`   | `number`                  | Yes      | Port number for the Socket.IO server |
+| `port`   | `number`                  | No       | Port number for the Socket.IO server (not needed when attaching to HTTP server) |
 | `opts`   | `Partial<ServerOptions>` | No       | Socket.IO server options             |
 
 ### ServerOptions
@@ -78,7 +78,6 @@ if (result.error) {
 
 ```typescript
 const config: SocketIOServerConfig = {
-  port: 8080,
   opts: {
     maxHttpBufferSize: 1e6,
     transports: ["websocket", "polling"],
@@ -98,8 +97,8 @@ import { createAdapter } from "@socket.io/redis-adapter";
 import { createClient } from "redis";
 
 const config: SocketIOServerConfig = {
-  port: 8080,
   opts: {
+    // Two clients required: first for publishing, second for subscribing
     adapter: createAdapter(
       createClient({ host: "localhost", port: 6379 }),
       createClient({ host: "localhost", port: 6379 })
@@ -107,3 +106,87 @@ const config: SocketIOServerConfig = {
   },
 };
 ```
+
+## Using Environment Variables with Config Adapter
+
+For production applications, it's common to configure Socket.IO using environment variables. Here's an example pattern using a config adapter:
+
+### 1. Create the Config Adapter
+
+```typescript
+// socket-io-config.adapter.ts
+import { SocketIOServerConfig } from "@ehildt/nestjs-socket.io";
+
+export function SocketIOConfigAdapter(env = process.env): SocketIOServerConfig {
+  return {
+    opts: {
+      maxHttpBufferSize: Number(env.SOCKET_IO_MAX_HTTP_BUFFER_SIZE ?? 262144),
+      transports: (env.SOCKET_IO_TRANSPORTS?.split(",") ?? [
+        "websocket",
+        "polling",
+      ]) as Array<"websocket" | "polling" | "webtransport">,
+      cors: {
+        origin: env.SOCKET_IO_CORS_ORIGIN ?? "*",
+        credentials: env.SOCKET_IO_CORS_CREDENTIALS === "true",
+        methods: (env.SOCKET_IO_CORS_METHODS?.split(",") ?? [
+          "GET",
+          "POST",
+        ]) as Array<"GET" | "POST">,
+      },
+      pingInterval: Number(env.SOCKET_IO_PING_INTERVAL ?? 25000),
+      pingTimeout: Number(env.SOCKET_IO_PING_TIMEOUT ?? 5000),
+      connectTimeout: Number(env.SOCKET_IO_CONNECT_TIMEOUT ?? 45000),
+    },
+  };
+}
+```
+
+### 2. Create the Config Service (Optional - for validation/caching)
+
+```typescript
+// socket-io-config.service.ts
+import { CacheReturnValue } from "@ehildt/nestjs-config-factory/cache-return-value";
+import { SocketIOConfigSchema, SocketIOServerConfig } from "@ehildt/nestjs-socket.io";
+import { Injectable } from "@nestjs/common";
+
+import { SocketIOConfigAdapter } from "./socket-io-config.adapter.js";
+
+@Injectable()
+export class SocketIOConfigService {
+  @CacheReturnValue(SocketIOConfigSchema)
+  get config(): SocketIOServerConfig {
+    return SocketIOConfigAdapter();
+  }
+}
+```
+
+### 3. Register in Your Module
+
+```typescript
+// app.module.ts
+import { Module } from "@nestjs/common";
+import { SocketIOModule, SocketIOConfigService } from "@ehildt/nestjs-socket.io";
+
+@Module({
+  imports: [
+    SocketIOModule.registerAsync({
+      inject: [SocketIOConfigService],
+      useFactory: (configService: SocketIOConfigService) => configService.config,
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+| -------- | ------- |-------------|
+| `SOCKET_IO_MAX_HTTP_BUFFER_SIZE` | 262144 | Max HTTP buffer size |
+| `SOCKET_IO_TRANSPORTS` | websocket,polling | Allowed transport protocols |
+| `SOCKET_IO_CORS_ORIGIN` | * | CORS origin |
+| `SOCKET_IO_CORS_CREDENTIALS` | false | Allow credentials |
+| `SOCKET_IO_CORS_METHODS` | GET,POST | Allowed CORS methods |
+| `SOCKET_IO_PING_INTERVAL` | 25000 | Ping interval in ms |
+| `SOCKET_IO_PING_TIMEOUT` | 5000 | Ping timeout in ms |
+| `SOCKET_IO_CONNECT_TIMEOUT` | 45000 | Connection timeout in ms |
