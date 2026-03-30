@@ -1,5 +1,11 @@
 # @ehildt/nestjs-socket.io
 
+## 1.2.5
+
+### Patch Changes
+
+- 9a9e25d: Rename `server` to `io` in SocketIOService and add SOCKET_IO_CONFIG provider
+
 ## 1.2.2
 
 ### Patch Changes
