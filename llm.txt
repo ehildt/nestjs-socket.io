@@ -1,0 +1,382 @@
+# @ehildt/nestjs-socket.io
+
+A lightweight NestJS wrapper around Socket.IO for building real-time applications with room management and event handling.
+
+**Important**: This library is ESM-only and does not support CommonJS.
+
+## Installation
+
+```bash
+pnpm add @ehildt/nestjs-socket.io socket.io @nestjs/common joi
+```
+
+## Peer Dependencies
+
+- `@nestjs/common` (^11.1.17)
+- `socket.io` (^4.8.1)
+- `joi` (^18.0.2)
+
+---
+
+## Module Registration
+
+Import `SocketIOModule` and register it asynchronously in your app module:
+
+```typescript
+import { Module } from "@nestjs/common";
+import { SocketIOModule } from "@ehildt/nestjs-socket.io";
+
+@Module({
+  imports: [
+    SocketIOModule.registerAsync({
+      useFactory: () => ({
+        port: 3000,
+        opts: {
+          cors: {
+            origin: "*",
+            credentials: true,
+            methods: ["GET", "POST"],
+          },
+          transports: ["websocket", "polling"],
+        },
+      }),
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+### Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `port` | `number` | Port for the Socket.IO server |
+| `opts` | `Partial<ServerOptions>` | Socket.IO server options |
+| `global` | `boolean` | Make the module global (optional) |
+
+### Socket.IO Server Options
+
+See [Socket.IO Server Options](https://socket.io/docs/v4/server-options/) for full reference.
+
+---
+
+## SocketIOService
+
+Inject `SocketIOService` into your services or controllers:
+
+```typescript
+import { Injectable } from "@nestjs/common";
+import { SocketIOService } from "@ehildt/nestjs-socket.io";
+
+@Injectable()
+export class ChatService {
+  constructor(private readonly socketService: SocketIOService) {}
+}
+```
+
+---
+
+## Emitting Events
+
+### Emit to All Clients
+
+```typescript
+this.socketService.emit("chat-message", { text: "Hello everyone!" });
+```
+
+### Emit to Specific Room
+
+```typescript
+this.socketService.emitTo("chat-message", "room-123", { text: "Hello room!" });
+```
+
+### Method Chaining
+
+All emission methods return `this` for chaining:
+
+```typescript
+this.socketService
+  .to("room-1")
+  .in("room-2")
+  .except("admin-room")
+  .timeout(5000)
+  .emit("event", { data: "message" });
+```
+
+**Chaining Methods:**
+- `to(room: string | string[])` - Target specific rooms
+- `in(room: string | string[])` - Alias for `to()`
+- `except(room: string | string[])` - Exclude rooms
+- `timeout(ms: number)` - Set timeout for acknowledgements
+
+---
+
+## Handling Events
+
+### Single Event Handler
+
+```typescript
+this.socketService.on("chat-message", ({ socket, data, ack }) => {
+  console.log("Received:", data);
+  // Acknowledge the event
+  ack(true);
+});
+```
+
+### Multiple Event Handlers
+
+```typescript
+this.socketService.on({
+  joinRoom: async ({ socket, data, ack }) => {
+    await socket.join(data);
+    ack(true);
+  },
+  leaveRoom: async ({ socket, data, ack }) => {
+    await socket.leave(data);
+    ack(true);
+  },
+  "custom-event": ({ socket, data, ack }) => {
+    // Handle custom event
+    ack(true);
+  },
+});
+```
+
+### Event Handler Signature
+
+```typescript
+type SocketEventHandler<S = Socket, T = any> = (obj: {
+  socket: S;
+  data: T;
+  ack: (ok: boolean, error?: string) => void;
+}) => Promise<void> | void;
+```
+
+The `ack` function acknowledges the event:
+- `ack(true)` - Success
+- `ack(false, "error message")` - Failure with error message
+
+---
+
+## Built-in Room Management
+
+The service automatically registers `joinRoom` and `leaveRoom` handlers on module init. Clients can call these directly:
+
+```typescript
+// Client-side
+socket.emit("joinRoom", "room-123", (ok, error) => {
+  if (ok) console.log("Joined room!");
+  else console.error(error);
+});
+```
+
+---
+
+## Socket Management
+
+### Fetch Sockets
+
+```typescript
+this.socketService.fetchSockets((sockets) => {
+  console.log("Connected sockets:", sockets);
+});
+```
+
+### Make Sockets Join Rooms
+
+```typescript
+this.socketService.socketsJoin("room-123");
+// or
+this.socketService.socketsJoin(["room-1", "room-2"], () => {
+  console.log("Sockets joined rooms");
+});
+```
+
+### Make Sockets Leave Rooms
+
+```typescript
+this.socketService.socketsLeave("room-123");
+```
+
+### Disconnect Sockets
+
+```typescript
+this.socketService.disconnectSockets(); // Disconnect without closing
+this.socketService.disconnectSockets(true); // Disconnect and close
+```
+
+### Close Server
+
+```typescript
+this.socketService.close(); // Close server
+this.socketService.close(() => console.log("Server closed"));
+```
+
+---
+
+## Namespaces
+
+```typescript
+this.socketService.of("/admin", (ns) => {
+  ns.on("connection", (socket) => {
+    socket.on("admin-event", () => {
+      // Handle admin namespace events
+    });
+  });
+});
+```
+
+---
+
+## Middleware
+
+```typescript
+this.socketService.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (token) {
+    next();
+  } else {
+    next(new Error("Unauthorized"));
+  }
+});
+```
+
+---
+
+## Access Raw Server
+
+```typescript
+const io = this.socketService.io;
+// Use raw socket.io server methods
+io.engine.generateId = (req) => {
+  return customId;
+};
+```
+
+---
+
+## Type Definitions
+
+### SocketIOServerConfig
+
+```typescript
+type SocketIOServerConfig = {
+  port?: number;
+  opts?: Partial<ServerOptions>;
+};
+```
+
+### SocketIOModuleProps
+
+```typescript
+type SocketIOModuleProps = {
+  global?: boolean;
+  inject?: any[];
+  useFactory: (...args: any[]) => SocketIOServerConfig | Promise<SocketIOServerConfig>;
+};
+```
+
+### SocketEventPayload
+
+```typescript
+type SocketEventPayload = {
+  data: string;
+  ack: (ok: boolean, error?: string) => void;
+  socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, unknown>;
+};
+```
+
+---
+
+## Complete Example
+
+### App Module
+
+```typescript
+import { Module } from "@nestjs/common";
+import { HttpAdapterHost } from "@nestjs/core";
+import { Server as SocketIOServer } from "socket.io";
+import { SocketIOModule, SocketIOService } from "@ehildt/nestjs-socket.io";
+
+import { AppController } from "./app.controller";
+
+@Module({
+  imports: [
+    SocketIOModule.registerAsync({
+      useFactory: () => ({
+        port: 3000,
+        opts: {
+          cors: {
+            origin: "*",
+            credentials: true,
+            methods: ["GET", "POST"],
+          },
+          transports: ["websocket", "polling"],
+        },
+      }),
+    }),
+  ],
+  controllers: [AppController],
+})
+export class AppModule {
+  constructor(
+    private readonly adapterHost: HttpAdapterHost,
+    private readonly socketService: SocketIOService,
+  ) {
+    const httpServer = this.adapterHost.httpAdapter.getHttpServer();
+    const io = new SocketIOServer(httpServer, {
+      cors: {
+        origin: "*",
+        credentials: true,
+        methods: ["GET", "POST"],
+      },
+      transports: ["websocket", "polling"],
+    });
+    this.socketService.io = io;
+  }
+}
+```
+
+### Event Handlers Service
+
+```typescript
+import { Injectable, OnModuleInit } from "@nestjs/common";
+import { SocketIOService } from "@ehildt/nestjs-socket.io";
+
+@Injectable()
+export class EventsService implements OnModuleInit {
+  constructor(private readonly socketService: SocketIOService) {}
+
+  onModuleInit() {
+    this.socketService.on({
+      "chat-message": ({ socket, data, ack }) => {
+        // Broadcast to all clients
+        this.socketService.emit("chat-message", data);
+        ack(true);
+      },
+      "private-message": ({ socket, data, ack }) => {
+        // Send to specific room
+        this.socketService.emitTo("private-message", data.room, data);
+        ack(true);
+      },
+    });
+  }
+
+  sendNotification(userId: string, message: string) {
+    this.socketService.emitTo("notification", `user-${userId}`, { message });
+  }
+
+  broadcastUpdate(data: unknown) {
+    this.socketService.emit("update", data);
+  }
+}
+```
+
+---
+
+## External Resources
+
+- [Socket.IO Server API](https://socket.io/docs/v4/server-api/)
+- [Socket.IO Server Options](https://socket.io/docs/v4/server-options/)
+- [Project Wiki](https://github.com/ehildt/nestjs-socket.io/wiki)
+- [GitHub Repository](https://github.com/ehildt/nestjs-socket.io)
