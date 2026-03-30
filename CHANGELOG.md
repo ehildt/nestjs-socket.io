@@ -1,5 +1,11 @@
 # @ehildt/nestjs-socket.io
 
+## 1.2.7
+
+### Patch Changes
+
+- d0710bf: Add llm.txt documentation for AI/LLM usage
+
 ## 1.2.6
 
 ### Patch Changes

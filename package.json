@@ -1,7 +1,7 @@
 {
   "name": "@ehildt/nestjs-socket.io",
   "description": "A NestJS module for building real-time applications with Socket.IO",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "license": "MIT",
   "type": "module",
   "exports": {
