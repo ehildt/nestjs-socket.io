@@ -74,6 +74,111 @@ describe("SocketIOModule", () => {
     });
   });
 
+  describe("attach", () => {
+    const mockConfig: SocketIOServerConfig = {
+      port: 3000,
+      opts: { cors: { origin: "*" } },
+    };
+
+    it("should detect Express adapter and call getHttpServer", async () => {
+      const mockService = {
+        config: mockConfig,
+        io: null as any,
+      };
+
+      const mockApp = {
+        get: vi.fn().mockImplementation((token) => {
+          if (token === SocketIOService) {
+            return mockService;
+          }
+          return null;
+        }),
+        getHttpAdapter: vi.fn().mockReturnValue({
+          getInstance: vi.fn().mockReturnValue({ listen: vi.fn() }),
+        }),
+        getHttpServer: vi.fn().mockReturnValue({ on: vi.fn() }),
+      };
+
+      await SocketIOModule.attach(mockApp as any);
+
+      expect(mockService.io).toBeDefined();
+    });
+
+    it("should detect Fastify adapter and call register", async () => {
+      const mockService = {
+        config: mockConfig,
+        io: null as any,
+      };
+
+      const mockApp = {
+        get: vi.fn().mockImplementation((token) => {
+          if (token === SocketIOService) {
+            return mockService;
+          }
+          return null;
+        }),
+        getHttpAdapter: vi.fn().mockReturnValue({
+          getInstance: vi.fn().mockReturnValue({ register: vi.fn(), io: {} }),
+        }),
+        register: vi.fn().mockResolvedValue(undefined),
+      };
+
+      vi.stubGlobal("fastify-socket.io", {
+        default: vi.fn(),
+      });
+
+      await SocketIOModule.attach(mockApp as any);
+
+      expect(mockService.io).toBeDefined();
+    });
+
+    it("should use explicit fsio when passed", async () => {
+      const mockService = {
+        config: mockConfig,
+        io: null as any,
+      };
+
+      const mockApp = {
+        get: vi.fn().mockImplementation((token) => {
+          if (token === SocketIOService) {
+            return mockService;
+          }
+          return null;
+        }),
+        getHttpAdapter: vi.fn().mockReturnValue({
+          getInstance: vi.fn().mockReturnValue({ register: vi.fn(), io: {} }),
+        }),
+        register: vi.fn().mockImplementation(async () => {
+          mockService.io = {} as any;
+        }),
+      };
+
+      const mockFsio = vi.fn();
+
+      await SocketIOModule.attach(mockApp as any, mockFsio);
+
+      expect(mockService.io).toBeDefined();
+    });
+
+    it("should throw error when no adapter detected and no fsio provided", async () => {
+      const mockApp = {
+        get: vi.fn().mockImplementation((token) => {
+          if (token === SocketIOService) {
+            return { config: mockConfig, io: null };
+          }
+          return null;
+        }),
+        getHttpAdapter: vi.fn().mockReturnValue({
+          getInstance: vi.fn().mockReturnValue(null),
+        }),
+      };
+
+      await expect(SocketIOModule.attach(mockApp as any)).rejects.toThrow(
+        "Could not detect Fastify or Express adapter. Please open an issue at https://github.com/ehildt/nestjs-socket.io",
+      );
+    });
+  });
+
   describe("integration", () => {
     it("should create NestJS app with SocketIOModule", async () => {
       app = await Test.createTestingModule({

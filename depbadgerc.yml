@@ -47,6 +47,9 @@ peerDependencies:
     - name: joi
       namedLogo: npm
       link: https://github.com/sideway/joi
+    - name: fastify-socket.io
+      namedLogo: npm 
+      link: https://github.com/ducktors/fastify-socket.io
 
 dependencies:
   items: []

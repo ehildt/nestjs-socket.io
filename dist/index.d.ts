@@ -27,6 +27,7 @@ type SocketEventPayload = {
 };
 
 declare class SocketIOModule {
+    static attach(app: any, fsio?: any): Promise<void>;
     static registerAsync(options: SocketIOModuleProps): DynamicModule;
 }
 

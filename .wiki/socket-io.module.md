@@ -135,45 +135,60 @@ export class AppModule {}
 
 ### 3. Attach Socket.IO server in main.ts
 
-**Express:**
+The `SocketIOModule.attach()` method auto-detects Fastify or Express:
+
+```typescript
+// main.ts
+import { NestFactory } from "@nestjs/core";
+import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
+import { AppModule } from "./app.module";
+import { SocketIOModule } from "@ehildt/nestjs-socket.io";
+
+void (async () => {
+  const adapter = new FastifyAdapter();
+  const app = await NestFactory.create<NestFastifyApplication>(AppModule, adapter);
+
+  // Auto-detects Fastify or Express and attaches Socket.IO
+  await SocketIOModule.attach(app);
+
+  await app.listen({ port: 3000 });
+})();
+```
+
+**Express (explicit fsio fallback):**
+
 ```typescript
 // main.ts
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { SocketIOService } from "@ehildt/nestjs-socket.io";
+import { SocketIOModule } from "@ehildt/nestjs-socket.io";
 
 void (async () => {
   const app = await NestFactory.create(AppModule);
-  await app.init();
 
-  const httpServer = app.getHttpServer();
-  const socketIOService = app.get(SocketIOService);
-  socketIOService.io = new (await import("socket.io")).Server(httpServer, socketIOService.config.opts);
+  // Auto-detects Express adapter
+  await SocketIOModule.attach(app);
 
   await app.listen(3000);
 })();
 ```
 
-**Fastify:**
+**Fastify (explicit fsio fallback):**
+
 ```typescript
 // main.ts
 import { NestFactory } from "@nestjs/core";
 import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
 import fastifySocketIO from "fastify-socket.io";
 import { AppModule } from "./app.module";
-import { SocketIOService } from "@ehildt/nestjs-socket.io";
+import { SocketIOModule } from "@ehildt/nestjs-socket.io";
 
 void (async () => {
   const adapter = new FastifyAdapter();
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, adapter);
 
-  // Get SocketIOService and register fastify-socket.io with config
-  const socketIOService = app.get(SocketIOService);
-  await app.register(fastifySocketIO as any, socketIOService.config.opts);
-
-  // Get the Fastify instance and access the Socket.IO server
-  const fastifyInstance = app.getHttpAdapter().getInstance();
-  socketIOService.io = (fastifyInstance as any).io;
+  // Use explicit fsio if auto-detection fails
+  await SocketIOModule.attach(app, fastifySocketIO);
 
   await app.listen({ port: 3000 });
 })();

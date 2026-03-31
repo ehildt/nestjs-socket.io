@@ -77,6 +77,8 @@ fieldname
 fieldtypes
 fontawesome
 freebsd
+fsio
+FSIO
 genpose
 ghostwhite
 gitconfiglocal
