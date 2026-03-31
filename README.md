@@ -52,7 +52,7 @@ A lightweight NestJS wrapper around [Socket.IO](https://socket.io/docs/v4/server
 [![rimraf](https://img.shields.io/badge/rimraf-v6.1.3-24a85b.svg?labelColor=333&cacheSeconds=3600&logo=npm&logoColor=24a85b&logoWidth=40&style=flat-square)](https://github.com/isaacs/rimraf)
 [![ts-unused-exports](https://img.shields.io/badge/ts_unused_exports-v11.0.1-5e26c0.svg?labelColor=333&cacheSeconds=3600&logo=npm&logoColor=5e26c0&logoWidth=40&style=flat-square)](https://github.com/pinterest/ts-unused-exports)
 [![tsup](https://img.shields.io/badge/tsup-v8.5.1-472cce.svg?labelColor=333&cacheSeconds=3600&logo=npm&logoColor=472cce&logoWidth=40&style=flat-square)](https://github.com/egoist/tsup)
-[![typescript-eslint](https://img.shields.io/badge/typescript_eslint-v8.57.2-dc2e59.svg?labelColor=333&cacheSeconds=3600&logo=eslint&logoColor=dc2e59&logoWidth=40&style=flat-square)](https://github.com/typescript-eslint/typescript-eslint)
+[![typescript-eslint](https://img.shields.io/badge/typescript_eslint-v8.58.0-dc2e59.svg?labelColor=333&cacheSeconds=3600&logo=eslint&logoColor=dc2e59&logoWidth=40&style=flat-square)](https://github.com/typescript-eslint/typescript-eslint)
 [![vitest](https://img.shields.io/badge/vitest-v4.1.2-80c026.svg?labelColor=333&cacheSeconds=3600&logo=vitest&logoColor=80c026&logoWidth=40&style=flat-square)](https://github.com/vitest-dev/vitest)
 
 </div>
@@ -68,6 +68,7 @@ A lightweight NestJS wrapper around [Socket.IO](https://socket.io/docs/v4/server
 [![@nestjs/common](https://img.shields.io/badge/_nestjs_common-v11.1.17-88de2b.svg?labelColor=333&cacheSeconds=3600&logo=npm&logoColor=88de2b&logoWidth=40&style=flat)](https://github.com/nestjs/nest)
 [![socket.io](https://img.shields.io/badge/socket_io-v4.8.1-2e42d6.svg?labelColor=333&cacheSeconds=3600&logo=npm&logoColor=2e42d6&logoWidth=40&style=flat)](https://github.com/socketio/socket.io)
 [![joi](https://img.shields.io/badge/joi-v18.0.2-9f1eb3.svg?labelColor=333&cacheSeconds=3600&logo=npm&logoColor=9f1eb3&logoWidth=40&style=flat)](https://github.com/sideway/joi)
+[![fastify-socket.io](https://img.shields.io/badge/fastify_socket_io-v5.1.0-c54e30.svg?labelColor=333&cacheSeconds=3600&logo=npm&logoColor=c54e30&logoWidth=40&style=flat)](https://github.com/ducktors/fastify-socket.io)
 
 </div>
 <!-- DEPBADGE:END -->
