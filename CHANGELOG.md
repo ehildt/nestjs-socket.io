@@ -1,5 +1,11 @@
 # @ehildt/nestjs-socket.io
 
+## 1.3.3
+
+### Patch Changes
+
+- b7d5980: updated wiki
+
 ## 1.3.2
 
 ### Patch Changes
