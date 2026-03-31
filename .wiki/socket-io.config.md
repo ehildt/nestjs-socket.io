@@ -119,8 +119,10 @@ import { SocketIOServerConfig } from "@ehildt/nestjs-socket.io";
 
 export function SocketIOConfigAdapter(env = process.env): SocketIOServerConfig {
   return {
+    port: Number(env.SOCKET_IO_PORT ?? 3001),
     opts: {
       maxHttpBufferSize: Number(env.SOCKET_IO_MAX_HTTP_BUFFER_SIZE ?? 262144),
+      cleanupEmptyChildNamespaces: env.SOCKET_IO_CLEANUP_EMPTY_CHILD_NAMESPACES === "true",
       transports: (env.SOCKET_IO_TRANSPORTS?.split(",") ?? [
         "websocket",
         "polling",
@@ -136,6 +138,7 @@ export function SocketIOConfigAdapter(env = process.env): SocketIOServerConfig {
       pingInterval: Number(env.SOCKET_IO_PING_INTERVAL ?? 25000),
       pingTimeout: Number(env.SOCKET_IO_PING_TIMEOUT ?? 5000),
       connectTimeout: Number(env.SOCKET_IO_CONNECT_TIMEOUT ?? 45000),
+      allowEIO3: env.SOCKET_IO_ALLOW_EIO3 !== "false",
     },
   };
 }
@@ -182,6 +185,7 @@ export class AppModule {}
 
 | Variable | Default | Description |
 | -------- | ------- |-------------|
+| `SOCKET_IO_PORT` | 3001 | Port number for standalone server |
 | `SOCKET_IO_MAX_HTTP_BUFFER_SIZE` | 262144 | Max HTTP buffer size |
 | `SOCKET_IO_TRANSPORTS` | websocket,polling | Allowed transport protocols |
 | `SOCKET_IO_CORS_ORIGIN` | * | CORS origin |
@@ -190,3 +194,5 @@ export class AppModule {}
 | `SOCKET_IO_PING_INTERVAL` | 25000 | Ping interval in ms |
 | `SOCKET_IO_PING_TIMEOUT` | 5000 | Ping timeout in ms |
 | `SOCKET_IO_CONNECT_TIMEOUT` | 45000 | Connection timeout in ms |
+| `SOCKET_IO_CLEANUP_EMPTY_CHILD_NAMESPACES` | false | Auto-cleanup empty namespaces |
+| `SOCKET_IO_ALLOW_EIO3` | true | Allow Engine.IO v3 protocol |

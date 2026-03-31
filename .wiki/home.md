@@ -46,18 +46,14 @@ export class AppModule {}
 
 **Express:**
 ```typescript
+import { Module } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { SocketIOService } from "@ehildt/nestjs-socket.io";
+import { SocketIOModule } from "@ehildt/nestjs-socket.io";
 
 void (async () => {
   const app = await NestFactory.create(AppModule);
-  await app.init();
-
-  const httpServer = app.getHttpServer();
-  const socketIOService = app.get(SocketIOService);
-  socketIOService.io = new (await import("socket.io")).Server(httpServer, socketIOService.config.opts);
-
+  await SocketIOModule.attach(app);
   await app.listen(3000);
 })();
 ```
@@ -66,20 +62,13 @@ void (async () => {
 ```typescript
 import { NestFactory } from "@nestjs/core";
 import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
-import fastifySocketIO from "fastify-socket.io";
 import { AppModule } from "./app.module";
-import { SocketIOService } from "@ehildt/nestjs-socket.io";
+import { SocketIOModule } from "@ehildt/nestjs-socket.io";
 
 void (async () => {
   const adapter = new FastifyAdapter();
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, adapter);
-
-  const socketIOService = app.get(SocketIOService);
-  await app.register(fastifySocketIO as any, socketIOService.config.opts);
-
-  const fastifyInstance = app.getHttpAdapter().getInstance();
-  socketIOService.io = (fastifyInstance as any).io;
-
+  await SocketIOModule.attach(app);
   await app.listen({ port: 3000 });
 })();
 ```
