@@ -1,5 +1,11 @@
 # @ehildt/nestjs-socket.io
 
+## 1.3.2
+
+### Patch Changes
+
+- a7377e0: Fix TypeScript type errors in socket-io.module.ts attach function by using INestApplicationExtended type
+
 ## 1.3.0
 
 ### Minor Changes
