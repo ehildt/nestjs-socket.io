@@ -1,5 +1,13 @@
 # @ehildt/nestjs-socket.io
 
+## 1.3.0
+
+### Minor Changes
+
+- 9675c56: Remove automatic registration of joinRoom/leaveRoom handlers and remove built-in logger.
+  Added new attach method to SocketIOModule
+  Auto-detects Fastify or Express adapter and attaches Socket.IO to the NestJS application.
+
 ## 1.2.7
 
 ### Patch Changes
