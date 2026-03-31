@@ -1,6 +1,6 @@
 import { DynamicModule, Module } from "@nestjs/common";
 
-import { SOCKET_IO_CONFIG, SocketIOModuleProps } from "../models/socket-io.model.ts";
+import { INestApplicationExtended, SOCKET_IO_CONFIG, SocketIOModuleProps } from "../models/socket-io.model.ts";
 import { SocketIOService } from "../service/socket-io.service.ts";
 
 @Module({})
@@ -12,21 +12,21 @@ export class SocketIOModule {
    * @param app - NestJS application instance
    * @param fsio - Optional explicit fastify-socket.io adapter for fallback
    */
-  static async attach(app: any, fsio?: any) {
+  static async attach(app: INestApplicationExtended, fsio?: unknown) {
     const service = app.get(SocketIOService);
     const adapter = app.getHttpAdapter();
-    const instance = adapter.getInstance?.();
+    const instance = adapter.getInstance();
 
-    const isFastify = instance && typeof (instance as any).register === "function";
+    const isFastify = instance && typeof instance.register === "function";
 
     if (isFastify) {
       const FSIO = (await import("fastify-socket.io")).default;
       await app.register(FSIO, service.config.opts);
-      service.io = (instance as any).io;
+      service.io = instance.io;
       return;
     }
 
-    const isExpress = instance && typeof (instance as any).listen === "function";
+    const isExpress = instance && typeof instance.listen === "function";
 
     if (isExpress) {
       const httpServer = app.getHttpServer();
@@ -38,7 +38,7 @@ export class SocketIOModule {
     if (fsio) {
       await app.register(fsio, service.config.opts);
       const fastifyInstance = adapter.getInstance();
-      service.io = (fastifyInstance as any).io;
+      service.io = fastifyInstance.io;
       return;
     }
 

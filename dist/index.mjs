@@ -209,7 +209,7 @@ var SocketIOModule = class {
   static async attach(app, fsio) {
     const service = app.get(SocketIOService);
     const adapter = app.getHttpAdapter();
-    const instance = adapter.getInstance?.();
+    const instance = adapter.getInstance();
     const isFastify = instance && typeof instance.register === "function";
     if (isFastify) {
       const FSIO = (await import('fastify-socket.io')).default;

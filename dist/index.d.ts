@@ -1,8 +1,11 @@
-import { Socket, DefaultEventsMap, ServerOptions, Server, RemoteSocket, Namespace } from 'socket.io';
-import { DynamicModule } from '@nestjs/common';
+import { INestApplication, DynamicModule } from '@nestjs/common';
+import { ServerOptions, Socket, DefaultEventsMap, Server, RemoteSocket, Namespace } from 'socket.io';
 import Joi from 'joi';
 
 declare const SOCKET_IO_CONFIG = "SOCKET_IO_CONFIG";
+type INestApplicationExtended = INestApplication & {
+    register: (fsio: any, opts?: Partial<ServerOptions>) => any;
+};
 type SocketIOServerConfig = {
     port?: number;
     opts?: Partial<ServerOptions>;
@@ -27,7 +30,7 @@ type SocketEventPayload = {
 };
 
 declare class SocketIOModule {
-    static attach(app: any, fsio?: any): Promise<void>;
+    static attach(app: INestApplicationExtended, fsio?: unknown): Promise<void>;
     static registerAsync(options: SocketIOModuleProps): DynamicModule;
 }
 
@@ -58,4 +61,4 @@ declare class SocketIOService {
     use(fn: (socket: Socket, next: (err?: Error) => void) => void, cb?: (server: Server) => void): this;
 }
 
-export { SOCKET_IO_CONFIG, type SocketEventHandler, type SocketEventMap, type SocketEventPayload, SocketIOConfigSchema, SocketIOModule, type SocketIOModuleProps, type SocketIOServerConfig, SocketIOService };
+export { type INestApplicationExtended, SOCKET_IO_CONFIG, type SocketEventHandler, type SocketEventMap, type SocketEventPayload, SocketIOConfigSchema, SocketIOModule, type SocketIOModuleProps, type SocketIOServerConfig, SocketIOService };

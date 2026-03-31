@@ -1,6 +1,11 @@
+import { INestApplication } from "@nestjs/common";
 import { DefaultEventsMap, ServerOptions, Socket } from "socket.io";
 
 export const SOCKET_IO_CONFIG = "SOCKET_IO_CONFIG";
+
+export type INestApplicationExtended = INestApplication & {
+  register: (fsio: any, opts?: Partial<ServerOptions>) => any;
+};
 
 export type SocketIOServerConfig = {
   port?: number;
